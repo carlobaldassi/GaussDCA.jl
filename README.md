@@ -13,10 +13,10 @@ Pagnani, submitted to PLOS ONE (2013).
 This code is released under the GPL version 3 (or later) license; see the
 `LICENCE.md` file for details.
 
-The code is written in [Julia](www.julialang.org) and requires julia version at
-least 0.2; it provides a function which reads a multiple sequence alignment (in
-FASTA format) and returns a ranking of all pairs of residue positions in the
-aligned amino-acid sequences.
+The code is written in [Julia](www.julialang.org) and requires julia version
+0.2 or later; it provides a function which reads a multiple sequence alignment
+(in FASTA format) and returns a ranking of all pairs of residue positions in
+the aligned amino-acid sequences.
 
 Installation
 ------------
@@ -29,7 +29,7 @@ julia command line:
   ```
 
 in this way, all dependencies will be satisfied automatically, and the code
-will be upgraded every time the `Pkg.update()` is used.
+will be upgraded every time the `Pkg.update()` command is used.
 
 Alternatively, you can manually copy the whole directory structure to your
 julia package directory (use `Pkg.dir()` to locate it), and then run
