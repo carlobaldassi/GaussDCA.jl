@@ -1,5 +1,5 @@
-Gaussian Direct Coupling Analysis
-=================================
+Gaussian Direct Coupling Analysis for protein contacts predicion
+================================================================
 
 Overview
 --------
@@ -11,7 +11,7 @@ Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weight and Andrea
 Pagnani, submitted to PLOS ONE (2013).
 
 This code is released under the GPL version 3 (or later) license; see the
-`LICENCE.md` file for details.
+`LICENSE.md` file for details.
 
 The code is written in [Julia](www.julialang.org) and requires julia version
 0.2 or later; it provides a function which reads a multiple sequence alignment
