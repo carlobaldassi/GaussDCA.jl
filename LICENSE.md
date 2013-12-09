@@ -1,6 +1,6 @@
 Julia Gaussian Direct Coupling Analysis (GaussDCA) package
 Copyright (C) 2013 Carlo Baldassi, Marco Zamparo, Christoph Feinauer,
-Andrea Procaccini, Riccardo Zecchina, Martin Weight and Andrea Pagnani
+Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea Pagnani
 (the "Authors").
 All Rights Reserved.
 

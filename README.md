@@ -7,7 +7,7 @@ Overview
 This is the code which accompanies the paper "Fast and accurate multivariate
 Gaussian modeling of protein families: Predicting residue contacts and
 protein-interaction partners" by Carlo Baldassi, Marco Zamparo, Christoph
-Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weight and Andrea
+Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea
 Pagnani, submitted to PLOS ONE (2013).
 
 This code is released under the GPL version 3 (or later) license; see the
