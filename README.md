@@ -38,15 +38,16 @@ julia package directory (use `Pkg.dir()` to locate it), and then run
 Usage
 -----
 
-To load the code, just type `using GaussDCA`.  
+To load the code, just type `using GaussDCA`.
 
 This software provides one main function, `gDCA(filname::String, ...)`. This
 function takes the name of a (possibly gzipped) FASTA file, and returns a
 predicted contact ranking, in the form of a Vector of triples, each triple
-containing two indices `i` and `j` (with `i < j + 4`) and a score. The indices
-start counting from 1, and indicate pair of residue positions in the given
-alignment. The triples are sorted by score in descending order, such that
-predicted contacts should come up on top.  
+containing two indices `i` and `j` (with `i` < `j`) and a score. The indices
+start counting from 1, and denote pair of residue positions in the given
+alignment; pairs which are separated by less than a given number of residues
+(by default 5) are filtered out. The triples are sorted by score in descending
+order, such that predicted contacts should come up on top.
 
 For convenience, a utility function is also provided, `printrank(output, R)`,
 which prints the result of `gDCA` either in a file or to a stream, given as
@@ -69,11 +70,14 @@ The `gDCA` function takes some additional, optional keyword arguments:
             the Direct Information, and `:frob` for the Frobenius norm. The
             default is `:frob`. (Note the leading colon: this argument is passed
             as a symbol).
+ * `min_separation`: the minimum separation between residues in the output
+                     ranking. Must be >= `1`. The default
+                     is `5`.
 
 The code will be parallelized if more than one julia worker (as obtained by the
 `nworkers()` function) is available (by either launching julia with the `-p`
 option from the command line, or by using the `addprocs` function). See the
-"Additional thechnical notes" section at the end of this document.  
+"Additional thechnical notes" section at the end of this document.
 
 Examples
 --------

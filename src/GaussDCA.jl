@@ -17,10 +17,11 @@ function gDCA(filename::String;
               pseudocount::Real = 0.8,
               theta = :auto,
               max_gap_fraction::Real = 0.9,
-              score::Symbol = :frob)
+              score::Symbol = :frob,
+              min_separation::Integer = 5)
 
 
-    check_arguments(filename, pseudocount, theta, max_gap_fraction, score)
+    check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
 
     use_threading(true)
 
@@ -45,19 +46,20 @@ function gDCA(filename::String;
 
     S = correct_APC(S)
 
-    R = compute_ranking(S)
+    R = compute_ranking(S, min_separation)
 
     use_threading(false)
 
     return R
 end
 
-function check_arguments(filename, pseudocount, theta, max_gap_fraction, score)
+function check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
 
     0 <= pseudocount <= 1 || error("invalid pseudocount value: $pseudocount (must be between 0 and 1)")
     theta == :auto || 0 <= theta <= 1 || error("invalid theta value: $theta (must be either :auto, or a number between 0 and 1)")
     0 <= max_gap_fraction <= 1 || error("invalid max_gap_fraction value: $max_gap_fraction (must be between 0 and 1)")
     score in [:DI, :frob] || error("invalid score value: $score (must be either :DI or :frob)")
+    min_separation >= 1 || error("invalid min_separation value: $min_separation (must be >= 1)")
     isreadable(filename) || error("cannot open file $filename")
 
     return true
