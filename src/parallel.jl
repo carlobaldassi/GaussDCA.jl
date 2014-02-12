@@ -228,8 +228,7 @@ function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int
     end
 
     Ws,_ = ptriu(M, Vector{Float64}, compute_weights_chunk, cZ, thresh, N, M)
-    #W = sum(Ws) # used to work in julia 0.2, now fails because zero(Vector{Float64}) is not defined
-    W = reduce(+, zeros(M), Ws)
+    W = sum(Ws)
 
     for i = 1:M
         W[i] = 1 / (1 + W[i])
