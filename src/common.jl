@@ -67,11 +67,11 @@ function compute_weights(Z::Matrix{Int8}, theta::Real)
     return compute_weights(cZ, theta, N, M)
 end
 
-function matsqrt(K::Matrix{Float64})
-    vL, U = eig(K)
-    L = diagm(sqrt(vL))
-    U * L * U'
-end
+#function matsqrt(K::Matrix{Float64})
+    #vL, U = eig(K)
+    #L = diagm(sqrt(vL))
+    #U * L * U'
+#end
 
 function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
 

@@ -322,7 +322,7 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Matrix{
                 MM = invsqrtKi * mJij * invsqrtKj
                 #V = Is + 4 * (MM * MM')
                 V = MM * MM'
-                #X = Is + matsqrt(V)
+                #X = Is + sqrtm(Symmetric(V))
                 eigV = eig(V)[1]
                 eigX = sqrt(1 + 4 * eigV)
                 #DI[l] = z + 0.5 * log(det(X))
@@ -346,7 +346,7 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
         row = rowi + (1:s)
         rowi += s
 
-        iKs[i] = matsqrt(C[row,row])
+        iKs[i] = sqrtm(Symmetric(C[row,row]))
     end
 
     z = 0.5 * s * log(0.5)
