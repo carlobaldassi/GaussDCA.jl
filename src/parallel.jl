@@ -324,9 +324,9 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Matrix{
                 V = MM * MM'
                 #X = Is + sqrtm(Symmetric(V))
                 eigV = eig(V)[1]
-                eigX = sqrt(1 + 4 * eigV)
+                eigX = sqrt(1 .+ 4 * eigV)
                 #DI[l] = z + 0.5 * log(det(X))
-                DI[l] = z + 0.5 * sum(log(1 + eigX))
+                DI[l] = z + 0.5 * sum(log(1 .+ eigX))
             else
                 DI[l] = 0
             end

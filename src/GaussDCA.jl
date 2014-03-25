@@ -138,8 +138,8 @@ function add_pseudocount(Pi_true::Vector{Float64}, Pij_true::Matrix{Float64}, pc
 
     pcq = pc / q
 
-    Pij = (1 - pc) * Pij_true + pcq / q
-    Pi = (1 - pc) * Pi_true + pcq
+    Pij = (1 - pc) * Pij_true .+ pcq / q
+    Pi = (1 - pc) * Pi_true .+ pcq
 
     s = q - 1
 
