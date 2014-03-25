@@ -8,8 +8,8 @@ This is the code which accompanies the paper ["Fast and accurate multivariate
 Gaussian modeling of protein families: Predicting residue contacts and
 protein-interaction partners"](http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721)
 by Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini,
-Riccardo Zecchina, Martin Weigt and Andrea Pagnani, PLoS ONE 9(3): e92721.
-doi:10.1371/journal.pone.0092721
+Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014)
+PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
 
 This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
