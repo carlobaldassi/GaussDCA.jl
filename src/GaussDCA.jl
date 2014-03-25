@@ -55,12 +55,19 @@ end
 
 function check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
 
-    0 <= pseudocount <= 1 || error("invalid pseudocount value: $pseudocount (must be between 0 and 1)")
-    theta == :auto || 0 <= theta <= 1 || error("invalid theta value: $theta (must be either :auto, or a number between 0 and 1)")
-    0 <= max_gap_fraction <= 1 || error("invalid max_gap_fraction value: $max_gap_fraction (must be between 0 and 1)")
-    score in [:DI, :frob] || error("invalid score value: $score (must be either :DI or :frob)")
-    min_separation >= 1 || error("invalid min_separation value: $min_separation (must be >= 1)")
-    isreadable(filename) || error("cannot open file $filename")
+    aerror(s) = throw(ArgumentError(s))
+    0 <= pseudocount <= 1 ||
+        aerror("invalid pseudocount value: $pseudocount (must be between 0 and 1)")
+    theta == :auto || (isa(theta, Real) && 0 <= theta <= 1) ||
+        aerror("invalid theta value: $theta (must be either :auto, or a number between 0 and 1)")
+    0 <= max_gap_fraction <= 1 ||
+        aerror("invalid max_gap_fraction value: $max_gap_fraction (must be between 0 and 1)")
+    score in [:DI, :frob] ||
+        aerror("invalid score value: $score (must be either :DI or :frob)")
+    min_separation >= 1 ||
+        aerror("invalid min_separation value: $min_separation (must be >= 1)")
+    isreadable(filename) ||
+        aerror("cannot open file $filename")
 
     return true
 end
