@@ -13,6 +13,10 @@ else
 end
 using .AuxFunctions
 
+if VERSION < v"0.3-"
+    Base.sqrtm{T<:Real}(A::Symmetric{T}) = sqrtm(A, false)
+end
+
 function gDCA(filename::String;
               pseudocount::Real = 0.8,
               theta = :auto,
