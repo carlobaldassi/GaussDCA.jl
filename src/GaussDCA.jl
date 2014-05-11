@@ -34,7 +34,7 @@ function gDCA(filename::String;
     q = int(maximum(Z))
     q > 32 && error("parameter q=$q is too big (max 31 is allowed)")
 
-    Pi_true, Pij_true, Meff = compute_new_frequencies(Z, theta)
+    Pi_true, Pij_true, Meff, _ = compute_new_frequencies(Z, theta)
 
     Pi, Pij = add_pseudocount(Pi_true, Pij_true, float(pseudocount), N, q)
 
@@ -90,7 +90,7 @@ function compute_new_frequencies(Z::Matrix{Int8}, theta)
     W, Meff = compute_weights(Z, theta)
     Pi_true, Pij_true = compute_freqs(Z, W, Meff)
 
-    return Pi_true, Pij_true, Meff
+    return Pi_true, Pij_true, Meff, W
 end
 
 
