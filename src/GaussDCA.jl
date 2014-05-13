@@ -22,7 +22,8 @@ function gDCA(filename::String;
               theta = :auto,
               max_gap_fraction::Real = 0.9,
               score::Symbol = :frob,
-              min_separation::Integer = 5)
+              min_separation::Integer = 5,
+              remove_dups::Bool = false)
 
 
     check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
@@ -30,6 +31,9 @@ function gDCA(filename::String;
     use_threading(true)
 
     Z = read_fasta_alignment(filename, max_gap_fraction)
+    if remove_dups
+        Z, _ = remove_duplicate_seqs(Z)
+    end
     N, M = size(Z)
     q = int(maximum(Z))
     q > 32 && error("parameter q=$q is too big (max 31 is allowed)")
