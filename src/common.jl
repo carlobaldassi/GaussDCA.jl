@@ -31,13 +31,13 @@ end
 
 function compress_Z(Z::Matrix{Int8})
     N, M = size(Z)
-    ZZ = [Z[:,i]::Vector{Int8} for i = 1:M]
+    ZZ = Vector{Int8}[Z[:,i] for i = 1:M]
 
     cl = clength(N)
 
     cZ = [zeros(Uint64, cl) for i=1:M]
 
-    for i = 1:M
+    @inbounds for i = 1:M
         cZi = cZ[i]
         ZZi = ZZ[i]
         for k = 1:N
@@ -48,6 +48,65 @@ function compress_Z(Z::Matrix{Int8})
     end
 
     return cZ
+end
+
+function remove_duplicate_seqs(Z::Matrix{Int8})
+    N, M = size(Z)
+    hZ = Array(Uint, M)
+    @inbounds for i = 1:M
+        hZ[i] = hash(Z[:,i])
+    end
+    print("removing duplicate sequences... ")
+
+    ref_seq_ind = Array(Int, M)
+    ref_seq = Dict{Uint,Int}()
+    @inbounds for i = 1:M
+        ref_seq_ind[i] = get!(ref_seq, hZ[i], i)
+    end
+    uniqueseqs = collect(values(ref_seq))
+
+    # Check for collisions
+    collided = falses(M)
+    @inbounds for i = 1:M
+        k = ref_seq_ind[i]
+        k == i && continue
+        for j = 1:N
+            Z[j,i] != Z[j,k] && (collided[i] = true; break)
+        end
+    end
+
+    if any(collided)
+        nowcollided = BitArray(M)
+        while any(collided)
+            # Collect index of first row for each collided hash
+            empty!(ref_seq)
+            @inbounds for i = 1:M
+                collided[i] || continue
+                ref_seq_ind[i] = get!(ref_seq, hZ[i], i)
+            end
+            for v in values(ref_seq)
+                push!(uniqueseqs, v)
+            end
+
+            # Check for collisions
+            fill!(nowcollided, false)
+            @inbounds for i = 1:M
+                k = ref_seq_ind[i]
+                (!collided[i] || k == i) && continue
+                for j = 1:N
+                    Z[j,i] != Z[j,k] && (nowcollided[i] = true; break)
+                end
+            end
+            collided, nowcollided = nowcollided, collided
+        end
+    end
+
+    sort!(uniqueseqs)
+
+    newM = length(uniqueseqs)
+    newZ = Z[:,uniqueseqs]
+    println("done: $M -> $newM")
+    return newZ, uniqueseqs
 end
 
 compute_weights(Z::Matrix{Int8}, theta) = error("theta must be either :auto or a single real value")

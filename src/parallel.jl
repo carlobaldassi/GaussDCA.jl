@@ -2,7 +2,7 @@ module AuxFunctions
 
 include("common.jl")
 
-export use_threading, compute_weights, compute_DI, compute_FN
+export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
 use_threading(x::Bool) = blas_set_num_threads(x ? int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
 
