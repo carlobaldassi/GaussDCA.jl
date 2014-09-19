@@ -19,6 +19,10 @@ The code is written in [Julia](www.julialang.org) and requires julia version
 (in FASTA format) and returns a ranking of all pairs of residue positions in
 the aligned amino-acid sequences.
 
+If you use the code in your research, please cite the abovementioned paper
+and the following DOI:
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.10814.png)](http://dx.doi.org/10.5281/zenodo.10814)
+
 Installation
 ------------
 
