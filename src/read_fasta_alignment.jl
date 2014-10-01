@@ -72,7 +72,7 @@ let alphabet = [ 1,21, 2, 3, 4, 5, 6, 7, 8,21, 9,10,11,12,21,13,14,15,16,17,21,1
                # A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
     global letter2num
     function letter2num(c::Union(Char,Uint8))
-        i = c - 0x40
+        i = uint8(c) - 0x40
         1 <= i <= 25 && return alphabet[i]
         return 21
     end
