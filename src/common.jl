@@ -109,6 +109,8 @@ function remove_duplicate_seqs(Z::Matrix{Int8})
     return newZ, uniqueseqs
 end
 
+compute_weights(Z::Matrix{Int8}, theta) = compute_weights(Z, maximum(Z), theta)
+
 compute_weights(Z::Matrix{Int8}, q, theta) = error("theta must be either :auto or a single real value")
 
 function compute_weights(Z::Matrix{Int8}, q, theta::Symbol)
