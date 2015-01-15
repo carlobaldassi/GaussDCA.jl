@@ -36,9 +36,9 @@ function gDCA(filename::String;
     end
     N, M = size(Z)
     q = int(maximum(Z))
-    q > 32 && error("parameter q=$q is too big (max 31 is allowed)")
+    q > 32 && error("parameter q=$q is too big (max 32 is allowed)")
 
-    Pi_true, Pij_true, Meff, _ = compute_new_frequencies(Z, theta)
+    Pi_true, Pij_true, Meff, _ = compute_new_frequencies(Z, q, theta)
 
     Pi, Pij = add_pseudocount(Pi_true, Pij_true, float(pseudocount), N, q)
 
@@ -89,9 +89,9 @@ printrank(R::Vector{(Int,Int,Float64)}) = printrank(STDOUT, R)
 
 printrank(outfile::String, R::Vector{(Int,Int,Float64)}) = open(f->printrank(f, R), outfile, "w")
 
-function compute_new_frequencies(Z::Matrix{Int8}, theta)
+function compute_new_frequencies(Z::Matrix{Int8}, q, theta)
 
-    W, Meff = compute_weights(Z, theta)
+    W, Meff = compute_weights(Z, q, theta)
     Pi_true, Pij_true = compute_freqs(Z, W, Meff)
 
     return Pi_true, Pij_true, Meff, W

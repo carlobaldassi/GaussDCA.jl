@@ -151,13 +151,35 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, 
     return meanfracid
 end
 
-function compute_theta(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+function compute_theta{T<:Union(Int8,Uint64)}(cZ::Vector{Vector{T}}, N::Int, M::Int)
 
-    chunk_means,_ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
+    chunk_means, _ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
     meanfracid = sum(chunk_means) / (0.5 * M * (M-1))
     theta = min(0.5, 0.38 * 0.32 / meanfracid)
 
     return theta
+end
+
+# slow fallback
+function compute_theta_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
+    meanfracid = 0.0
+    i0, j0 = inds[1]
+    i1, j1 = inds[2]
+    for i = i0 : i1
+        Zi = ZZ[i]
+        jj0 = i==i0 ? j0 : i+1
+        jj1 = i==i1 ? j1 : M
+        for j = jj0 : jj1
+            Zj = ZZ[j]
+            nids = 0
+            for k = 1:N
+                nids += Zi[k] == Zj[k]
+            end
+            fracid = nids / N
+            meanfracid += fracid
+        end
+    end
+    return meanfracid
 end
 
 function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, thresh::Real, N::Int, M::Int)
@@ -215,7 +237,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, thresh
     return W
 end
 
-function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int)
+function compute_weights{T<:Union(Int8,Uint64)}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
 
     theta = float64(theta)
 
@@ -229,7 +251,7 @@ function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int
         return W, float64(M)
     end
 
-    Ws,_ = ptriu(M, Vector{Float64}, compute_weights_chunk, cZ, thresh, N, M)
+    Ws, _ = ptriu(M, Vector{Float64}, compute_weights_chunk, cZ, thresh, N, M)
     W = sum(Ws)
 
     for i = 1:M
@@ -238,6 +260,33 @@ function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int
     end
     println("M = $M N = $N Meff = $Meff")
     return W, Meff
+end
+
+# slow fallback
+function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::Real, N::Int, M::Int)
+    W = zeros(M)
+    i0, j0 = inds[1]
+    i1, j1 = inds[2]
+    for i = i0 : i1
+        Zi = ZZ[i]
+        jj0 = i==i0 ? j0 : i+1
+        jj1 = i==i1 ? j1 : M
+        for j = jj0 : jj1
+            Zj = ZZ[j]
+            dist = 0
+            k = 1
+            while dist < thresh && k <= N
+                dist += Zi[k] != Zj[k]
+                k += 1
+            end
+            if dist < thresh
+                W[i] += 1.
+                W[j] += 1.
+                #ret[j-i] = true
+            end
+        end
+    end
+    return W
 end
 
 function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, M::Int)

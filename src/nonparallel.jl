@@ -63,6 +63,25 @@ function compute_theta(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
     return theta
 end
 
+function compute_theta(ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
+    meanfracid = 0.0
+    for i = 1:M-1
+        Zi = ZZ[i]
+        for j = i+1:M
+            Zj = ZZ[j]
+            nids = 0
+            for k = 1:N
+                nids += Zi[k] == Zj[k]
+            end
+            fracid = nids / N
+            meanfracid += fracid
+        end
+    end
+    meanfracid /= 0.5 * M * (M-1)
+    theta = min(0.5, 0.38 * 0.32 / meanfracid)
+    return theta
+end
+
 function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int)
 
     theta = float64(theta)
@@ -127,6 +146,45 @@ function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int
         W[i] = 1 / W[i]
     end
     Meff = sum(W)
+    println("M = $M N = $N Meff = $Meff")
+    return W, Meff
+end
+
+function compute_weights(ZZ::Vector{Vector{Int8}}, theta::Float64, N::Int, M::Int)
+
+    Meff = 0.
+
+    W = ones(M)
+
+    thresh = floor(theta * N)
+    println("theta = $theta threshold = $thresh")
+
+    if theta == 0
+        println("M = $M N = $N Meff = $M")
+        return W, float64(M)
+    end
+
+    for i = 1:M-1
+        Zi = ZZ[i]
+        for j = i+1:M
+            Zj = ZZ[j]
+            dist = 0
+            k = 1
+            while dist < thresh && k <= N
+
+                dist += Zi[k] != Zj[k]
+                k += 1
+            end
+            if dist < thresh
+                W[i] += 1.
+                W[j] += 1.
+            end
+        end
+    end
+    for i = 1:M
+        W[i] = 1. / W[i]
+        Meff += W[i]
+    end
     println("M = $M N = $N Meff = $Meff")
     return W, Meff
 end

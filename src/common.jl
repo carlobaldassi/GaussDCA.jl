@@ -109,20 +109,24 @@ function remove_duplicate_seqs(Z::Matrix{Int8})
     return newZ, uniqueseqs
 end
 
-compute_weights(Z::Matrix{Int8}, theta) = error("theta must be either :auto or a single real value")
+compute_weights(Z::Matrix{Int8}, q, theta) = error("theta must be either :auto or a single real value")
 
-function compute_weights(Z::Matrix{Int8}, theta::Symbol)
-    theta != :auto && return invoke(compute_weights, (Matrix{Int8}, Any), Z, theta)
-    
+function compute_weights(Z::Matrix{Int8}, q, theta::Symbol)
+    theta != :auto && return invoke(compute_weights, (Matrix{Int8}, Any, Any), Z, theta)
+
     N, M = size(Z)
-    cZ = compress_Z(Z)
+    cZ = q <= 32 ?
+        compress_Z(Z) :
+        [Z[:,i]::Vector{Int8} for i = 1:M]
     theta = compute_theta(cZ, N, M)
     return compute_weights(cZ, theta, N, M)
 end
 
-function compute_weights(Z::Matrix{Int8}, theta::Real)
+function compute_weights(Z::Matrix{Int8}, q, theta::Real)
     N, M = size(Z)
-    cZ = compress_Z(Z)
+    cZ = q <= 32 ?
+        compress_Z(Z) :
+        [Z[:,i]::Vector{Int8} for i = 1:M]
     return compute_weights(cZ, theta, N, M)
 end
 
