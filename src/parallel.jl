@@ -1,5 +1,7 @@
 module AuxFunctions
 
+using Compat
+
 include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
@@ -14,7 +16,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     nw = nworkers()
 
     if tot_inds >= nw
-        inds_dist = diff(iround(linspace(1, tot_inds+1, nw+1)))
+        inds_dist = diff(round(Int, linspace(1, tot_inds+1, nw+1)))
     else
         inds_dist = [ones(Int, tot_inds), zeros(Int, nw-tot_inds)]
     end
