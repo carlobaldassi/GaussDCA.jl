@@ -6,9 +6,9 @@ include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
-use_threading(x::Bool) = blas_set_num_threads(x ? int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
+@compat use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
 
-typealias TriuInd ((Int,Int),(Int,Int),Int)
+@compat typealias TriuInd Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
 function ptriu(sz::Int, RT::Type, func::Function, args...)
 
@@ -95,7 +95,7 @@ function ptriu_compose{T}(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd}
     return dest
 end
 
-function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     const cl = clength(N)
     const cr = 5 * (packfactor - crest(N)) + packrest
@@ -108,7 +108,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, 
     i1, j1 = inds[2]
     for i = i0 : i1
         cZi = unsafe(cZ[i])
-        nids::Uint64 = 0
+        nids::UInt64 = 0
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
         for j = jj0 : jj1
@@ -117,7 +117,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, 
             czi = start(cZi)
             czj = start(cZj)
 
-            z::Uint64 = 0
+            z::UInt64 = 0
 
             for k = 1:kmax
                 z = 0
@@ -151,7 +151,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, 
     return meanfracid
 end
 
-function compute_theta{T<:Union(Int8,Uint64)}(cZ::Vector{Vector{T}}, N::Int, M::Int)
+function compute_theta{T<:Union(Int8,UInt64)}(cZ::Vector{Vector{T}}, N::Int, M::Int)
 
     chunk_means, _ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
     meanfracid = sum(chunk_means) / (0.5 * M * (M-1))
@@ -182,7 +182,7 @@ function compute_theta_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, N::Int, M:
     return meanfracid
 end
 
-function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, thresh::Real, N::Int, M::Int)
+function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh::Real, N::Int, M::Int)
 
     const cl = clength(N)
     const kmax = div(cl - 1, 31)
@@ -201,8 +201,8 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, thresh
 
             czi = start(cZi)
             czj = start(cZj)
-            dist::Uint64 = 0
-            z::Uint64 = 0
+            dist::UInt64 = 0
+            z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
@@ -237,9 +237,9 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, thresh
     return W
 end
 
-function compute_weights{T<:Union(Int8,Uint64)}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
+@compat function compute_weights{T<:Union(Int8,UInt64)}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
 
-    theta = float64(theta)
+    theta = Float64(theta)
 
     Meff = 0.0
 
@@ -248,7 +248,7 @@ function compute_weights{T<:Union(Int8,Uint64)}(cZ::Vector{Vector{T}}, theta::Re
 
     if theta == 0
         println("M = $M N = $N Meff = $M")
-        return W, float64(M)
+        return W, Float64(M)
     end
 
     Ws, _ = ptriu(M, Vector{Float64}, compute_weights_chunk, cZ, thresh, N, M)
@@ -289,7 +289,7 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     return W
 end
 
-function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+@compat function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     const cl = clength(N)
     const kmax = div(cl - 1, 31)
@@ -342,7 +342,7 @@ function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{Uint64}}, N::Int, 
     return D
 end
 
-function compute_dists(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+@compat function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     Ds, inds = ptriu(M, Vector{Float16}, compute_dists_chunk, cZ, N, M)
     D = ptriu_compose(Ds, M, inds)

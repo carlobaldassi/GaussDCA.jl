@@ -1,14 +1,15 @@
 module ReadFastaAlignment
 
 using FastaIO
+using Compat
 
 export read_fasta_alignment
 
-function read_fasta_alignment(filename::String, max_gap_fraction::Real)
+@compat function read_fasta_alignment(filename::String, max_gap_fraction::Real)
 
     f = FastaReader(filename)
 
-    max_gap_fraction = float64(max_gap_fraction)
+    max_gap_fraction = Float64(max_gap_fraction)
 
     # pass 1
 
@@ -68,11 +69,11 @@ function read_fasta_alignment(filename::String, max_gap_fraction::Real)
     return Z
 end
 
-let alphabet = [ 1,21, 2, 3, 4, 5, 6, 7, 8,21, 9,10,11,12,21,13,14,15,16,17,21,18,19,21,20]
+@compat let alphabet = [ 1,21, 2, 3, 4, 5, 6, 7, 8,21, 9,10,11,12,21,13,14,15,16,17,21,18,19,21,20]
                # A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y
     global letter2num
     function letter2num(c::Union(Char,Uint8))
-        i = uint8(c) - 0x40
+        i = UInt8(c) - 0x40
         1 <= i <= 25 && return alphabet[i]
         return 21
     end

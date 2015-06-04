@@ -1,3 +1,3 @@
-julia 0.2
+julia 0.3
 FastaIO 0.1.2 0.2-
-Compat
+Compat 0.3.5

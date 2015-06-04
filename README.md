@@ -15,7 +15,7 @@ This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
 
 The code is written in [Julia](www.julialang.org) and requires julia version
-0.2 or later; it provides a function which reads a multiple sequence alignment
+0.3 or later; it provides a function which reads a multiple sequence alignment
 (in FASTA format) and returns a ranking of all pairs of residue positions in
 the aligned amino-acid sequences.
 

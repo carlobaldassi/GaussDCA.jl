@@ -4,6 +4,7 @@ export gDCA, printrank
 
 include("read_fasta_alignment.jl")
 
+using Compat
 using .ReadFastaAlignment
 
 if nprocs() > 2 && parse(get(ENV, "PARALLEL_GDCA", "true"))
@@ -17,13 +18,13 @@ if VERSION < v"0.3-"
     Base.sqrtm{T<:Real}(A::Symmetric{T}) = sqrtm(A, false)
 end
 
-function gDCA(filename::String;
-              pseudocount::Real = 0.8,
-              theta = :auto,
-              max_gap_fraction::Real = 0.9,
-              score::Symbol = :frob,
-              min_separation::Integer = 5,
-              remove_dups::Bool = false)
+@compat function gDCA(filename::String;
+                      pseudocount::Real = 0.8,
+                      theta = :auto,
+                      max_gap_fraction::Real = 0.9,
+                      score::Symbol = :frob,
+                      min_separation::Integer = 5,
+                      remove_dups::Bool = false)
 
 
     check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
@@ -35,12 +36,12 @@ function gDCA(filename::String;
         Z, _ = remove_duplicate_seqs(Z)
     end
     N, M = size(Z)
-    q = int(maximum(Z))
+    q = Int(maximum(Z))
     q > 32 && error("parameter q=$q is too big (max 32 is allowed)")
 
     Pi_true, Pij_true, Meff, _ = compute_new_frequencies(Z, q, theta)
 
-    Pi, Pij = add_pseudocount(Pi_true, Pij_true, float(pseudocount), N, q)
+    Pi, Pij = add_pseudocount(Pi_true, Pij_true, Float64(pseudocount), N, q)
 
     C = compute_C(Pi, Pij)
 
@@ -80,14 +81,14 @@ function check_arguments(filename, pseudocount, theta, max_gap_fraction, score, 
     return true
 end
 
-function printrank(io::IO, R::Vector{(Int,Int,Float64)})
+@compat function printrank(io::IO, R::Vector{Tuple{Int,Int,Float64}})
     for I in R
         @printf(io, "%i %i %e\n", I[1], I[2], I[3])
     end
 end
-printrank(R::Vector{(Int,Int,Float64)}) = printrank(STDOUT, R)
+@compat printrank(R::Vector{Tuple{Int,Int,Float64}}) = printrank(STDOUT, R)
 
-printrank(outfile::String, R::Vector{(Int,Int,Float64)}) = open(f->printrank(f, R), outfile, "w")
+@compat printrank(outfile::String, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
 
 function compute_new_frequencies(Z::Matrix{Int8}, q, theta)
 
@@ -184,10 +185,10 @@ function correct_APC(S::Matrix)
     return S
 end
 
-function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
+@compat function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
 
     N = size(S, 1)
-    R = Array((Int,Int,Float64), div((N-min_separation)*(N-min_separation+1), 2))
+    R = Array(Tuple{Int,Int,Float64}, div((N-min_separation)*(N-min_separation+1), 2))
     counter = 0
     for i = 1:N-min_separation, j = i+min_separation:N
         counter += 1

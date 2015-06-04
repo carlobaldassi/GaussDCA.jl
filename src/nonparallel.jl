@@ -82,9 +82,9 @@ function compute_theta(ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
     return theta
 end
 
-function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int)
+@compat function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int)
 
-    theta = float64(theta)
+    theta = Float64(theta)
 
     const cl = clength(N)
     const kmax = div(cl - 1, 31)
@@ -99,7 +99,7 @@ function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int
 
     if theta == 0
         println("M = $M N = $N Meff = $M")
-        return W, float64(M)
+        return W, Float64(M)
     end
 
     for i = 1:M-1
