@@ -18,7 +18,7 @@ if VERSION < v"0.3-"
     Base.sqrtm{T<:Real}(A::Symmetric{T}) = sqrtm(A, false)
 end
 
-@compat function gDCA(filename::String;
+@compat function gDCA(filename::AbstractString;
                       pseudocount::Real = 0.8,
                       theta = :auto,
                       max_gap_fraction::Real = 0.9,
@@ -88,7 +88,7 @@ end
 end
 @compat printrank(R::Vector{Tuple{Int,Int,Float64}}) = printrank(STDOUT, R)
 
-@compat printrank(outfile::String, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
+@compat printrank(outfile::AbstractString, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
 
 function compute_new_frequencies(Z::Matrix{Int8}, q, theta)
 
@@ -221,4 +221,4 @@ end
 module _GaussDCAloaded
 end
 
-GaussDCA._warmup()
+VERSION < v"0.4-" && GaussDCA._warmup() # TODO: doesn't work properly on 0.4, should investigate (or rather use precompilation)

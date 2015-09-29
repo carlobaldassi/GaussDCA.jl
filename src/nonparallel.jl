@@ -6,7 +6,7 @@ export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_
 
 use_threading(x) = nothing
 
-function compute_theta(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     const cl = clength(N)
     const cr = 5 * (packfactor - crest(N)) + packrest
@@ -19,14 +19,14 @@ function compute_theta(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
     # count seqs below theta dist
     for i = 1:M-1
         cZi = unsafe(cZ[i])
-        nids::Uint64 = 0
+        nids::UInt64 = 0
         for j = i+1:M
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
             czj = start(cZj)
 
-            z::Uint64 = 0
+            z::UInt64 = 0
 
             for k = 1:kmax
                 z = 0
@@ -82,7 +82,7 @@ function compute_theta(ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
     return theta
 end
 
-@compat function compute_weights(cZ::Vector{Vector{Uint64}}, theta::Real, N::Int, M::Int)
+@compat function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int)
 
     theta = Float64(theta)
 
@@ -109,8 +109,8 @@ end
 
             czi = start(cZi)
             czj = start(cZj)
-            dist::Uint64 = 0
-            z::Uint64 = 0
+            dist::UInt64 = 0
+            z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
@@ -189,7 +189,7 @@ function compute_weights(ZZ::Vector{Vector{Int8}}, theta::Float64, N::Int, M::In
     return W, Meff
 end
 
-function compute_dists(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
+function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     const cl = clength(N)
     const kmax = div(cl - 1, 31)
@@ -204,8 +204,8 @@ function compute_dists(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
 
             czi = start(cZi)
             czj = start(cZj)
-            dist::Uint64 = 0
-            z::Uint64 = 0
+            dist::UInt64 = 0
+            z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
@@ -235,13 +235,19 @@ function compute_dists(cZ::Vector{Vector{Uint64}}, N::Int, M::Int)
     return D
 end
 
+if VERSION ≥ v"0.4-"
+    typealias KT Symmetric{Float64,Matrix{Float64}}
+else
+    typealias KT Matrix{Float64}
+end
+
 function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
     DI = zeros(N, N)
     s = q - 1
     #Is = eye(s)
 
-    iKs = Array(Matrix{Float64}, N)
+    iKs = Array(KT, N)
     rowi = 0
     for i = 1:N
         row = rowi + (1:s)

@@ -1,7 +1,5 @@
 module AuxFunctions
 
-using Compat
-
 include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
@@ -151,7 +149,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
     return meanfracid
 end
 
-function compute_theta{T<:Union(Int8,UInt64)}(cZ::Vector{Vector{T}}, N::Int, M::Int)
+@compat function compute_theta{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, N::Int, M::Int)
 
     chunk_means, _ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
     meanfracid = sum(chunk_means) / (0.5 * M * (M-1))
@@ -237,7 +235,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
     return W
 end
 
-@compat function compute_weights{T<:Union(Int8,UInt64)}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
+@compat function compute_weights{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
 
     theta = Float64(theta)
 
@@ -310,8 +308,8 @@ end
 
             czi = start(cZi)
             czj = start(cZj)
-            dist::Uint64 = 0
-            z::Uint64 = 0
+            dist::UInt64 = 0
+            z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
@@ -387,11 +385,17 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Matrix{
     return DI
 end
 
+if VERSION ≥ v"0.4-"
+    typealias KT Symmetric{Float64,Matrix{Float64}}
+else
+    typealias KT Matrix{Float64}
+end
+
 function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
     s = q - 1
 
-    iKs = Array(Matrix{Float64}, N)
+    iKs = Array(KT, N)
     rowi = 0
     for i = 1:N
         row = rowi + (1:s)
