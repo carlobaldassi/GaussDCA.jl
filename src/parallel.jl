@@ -349,7 +349,7 @@ end
     return D
 end
 
-function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Matrix{Float64}}, mJ::Matrix{Float64}, z::Float64)
+function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Symmetric{Float64,Matrix{Float64}}}, mJ::Matrix{Float64}, z::Float64)
 
     DI = Array(Float64, inds[3])
     i0, j0 = inds[1]
