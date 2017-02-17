@@ -246,6 +246,7 @@ end
 
     if theta == 0
         println("M = $M N = $N Meff = $M")
+        W = ones(M)
         return W, Float64(M)
     end
 
