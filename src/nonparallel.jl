@@ -82,7 +82,7 @@ function compute_theta(ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
     return theta
 end
 
-@compat function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int)
+function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int)
 
     theta = Float64(theta)
 

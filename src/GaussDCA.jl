@@ -4,7 +4,6 @@ export gDCA, printrank
 
 include("read_fasta_alignment.jl")
 
-using Compat
 using .ReadFastaAlignment
 
 if nprocs() > 2 && parse(get(ENV, "PARALLEL_GDCA", "true"))
@@ -14,11 +13,7 @@ else
 end
 using .AuxFunctions
 
-if VERSION < v"0.3-"
-    Base.sqrtm{T<:Real}(A::Symmetric{T}) = sqrtm(A, false)
-end
-
-@compat function gDCA(filename::AbstractString;
+function gDCA(filename::AbstractString;
                       pseudocount::Real = 0.8,
                       theta = :auto,
                       max_gap_fraction::Real = 0.9,
@@ -81,14 +76,14 @@ function check_arguments(filename, pseudocount, theta, max_gap_fraction, score, 
     return true
 end
 
-@compat function printrank(io::IO, R::Vector{Tuple{Int,Int,Float64}})
+function printrank(io::IO, R::Vector{Tuple{Int,Int,Float64}})
     for I in R
         @printf(io, "%i %i %e\n", I[1], I[2], I[3])
     end
 end
-@compat printrank(R::Vector{Tuple{Int,Int,Float64}}) = printrank(STDOUT, R)
+printrank(R::Vector{Tuple{Int,Int,Float64}}) = printrank(STDOUT, R)
 
-@compat printrank(outfile::AbstractString, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
+printrank(outfile::AbstractString, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
 
 function compute_new_frequencies(Z::Matrix{Int8}, q, theta)
 
@@ -185,7 +180,7 @@ function correct_APC(S::Matrix)
     return S
 end
 
-@compat function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
+function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
 
     N = size(S, 1)
     R = Array(Tuple{Int,Int,Float64}, div((N-min_separation)*(N-min_separation+1), 2))
@@ -200,25 +195,4 @@ end
 
 end
 
-function _warmup()
-    myid() == 1 || return
-    while any(map(w->!(remotecall_fetch(w, isdefined, :_GaussDCAloaded)), workers()))
-        sleep(0.1)
-    end
-    smallfile = joinpath(dirname(Base.source_path()), "..", "data", "small.fasta.gz")
-    ostdout = STDOUT
-    try
-        (rd, wr) = redirect_stdout()
-        gDCA(smallfile)
-        gDCA(smallfile, score=:DI)
-    finally
-        redirect_stdout(ostdout)
-    end
-end
-
-end
-
-module _GaussDCAloaded
-end
-
-VERSION < v"0.4-" && GaussDCA._warmup() # TODO: doesn't work properly on 0.4, should investigate (or rather use precompilation)
+end # module

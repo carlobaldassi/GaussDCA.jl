@@ -9,7 +9,7 @@ const _alt = 0x007c1f07c1f07c1f
 const packfactor = div(PACKBITS, 5)
 const packrest = PACKBITS % 5
 
-@compat const _msk = ~(UInt64(0));
+const _msk = ~(UInt64(0));
 
 clength(l::Int) = div(l-1, packfactor) + 1
 crest(l::Int)   = (l-1) % packfactor + 1
@@ -30,7 +30,7 @@ macro collapse(z)
     end
 end
 
-@compat function compress_Z(Z::Matrix{Int8})
+function compress_Z(Z::Matrix{Int8})
     N, M = size(Z)
     ZZ = Vector{Int8}[Z[:,i] for i = 1:M]
 
@@ -139,7 +139,7 @@ end
     #U * L * U'
 #end
 
-@compat function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
+function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
 
     q = Int(q)
     s = q - 1
@@ -188,4 +188,3 @@ end
     end
     return FN
 end
-

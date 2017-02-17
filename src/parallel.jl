@@ -4,9 +4,9 @@ include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
-@compat use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
+use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
 
-@compat typealias TriuInd Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
+typealias TriuInd Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
 function ptriu(sz::Int, RT::Type, func::Function, args...)
 
@@ -149,7 +149,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
     return meanfracid
 end
 
-@compat function compute_theta{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, N::Int, M::Int)
+function compute_theta{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, N::Int, M::Int)
 
     chunk_means, _ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
     meanfracid = sum(chunk_means) / (0.5 * M * (M-1))
@@ -235,7 +235,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
     return W
 end
 
-@compat function compute_weights{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
+function compute_weights{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
 
     theta = Float64(theta)
 
@@ -288,7 +288,7 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     return W
 end
 
-@compat function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
+function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     const cl = clength(N)
     const kmax = div(cl - 1, 31)
@@ -341,7 +341,7 @@ end
     return D
 end
 
-@compat function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
+function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     Ds, inds = ptriu(M, Vector{Float16}, compute_dists_chunk, cZ, N, M)
     D = ptriu_compose(Ds, M, inds)
