@@ -26,7 +26,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     if tot_inds >= nw
         inds_dist = diff(round(Int, linspace(1, tot_inds+1, nw+1)))
     else
-        inds_dist = [ones(Int, tot_inds), zeros(Int, nw-tot_inds)]
+        inds_dist = [ones(Int, tot_inds); zeros(Int, nw-tot_inds)]
     end
 
     inds = Array{TriuInd}(nw)
