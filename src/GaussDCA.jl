@@ -183,7 +183,7 @@ end
 function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
 
     N = size(S, 1)
-    R = Array(Tuple{Int,Int,Float64}, div((N-min_separation)*(N-min_separation+1), 2))
+    R = Array{Tuple{Int,Int,Float64}}(div((N-min_separation)*(N-min_separation+1), 2))
     counter = 0
     for i = 1:N-min_separation, j = i+min_separation:N
         counter += 1

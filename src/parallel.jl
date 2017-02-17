@@ -29,7 +29,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
         inds_dist = [ones(Int, tot_inds), zeros(Int, nw-tot_inds)]
     end
 
-    inds = Array(TriuInd, nw)
+    inds = Array{TriuInd}(nw)
     i0, j0 = 1, 2
     for p = 1:nw
         l = inds_dist[p]
@@ -56,7 +56,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
         end
     end
 
-    ret = Array(RT, nw)
+    ret = Array{RT}(nw)
     wrk = workers()
 
     use_threading(false)
@@ -77,7 +77,7 @@ end
 
 function ptriu_compose{T}(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd})
 
-    dest = Array(T, sz, sz)
+    dest = Array{T}(sz, sz)
 
     @assert length(src) == length(inds)
 
@@ -364,7 +364,7 @@ typealias KT Symmetric{Float64,Matrix{Float64}}
 
 function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ::Matrix{Float64}, z::Float64)
 
-    DI = Array(Float64, inds[3])
+    DI = Array{Float64}(inds[3])
     i0, j0 = inds[1]
     i1, j1 = inds[2]
     l = 1
@@ -403,7 +403,7 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
     s = q - 1
 
-    iKs = Array(KT, N)
+    iKs = Array{KT}(N)
     rowi = 0
     for i = 1:N
         row = rowi + (1:s)

@@ -243,7 +243,7 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
     s = q - 1
     #Is = eye(s)
 
-    iKs = Array(KT, N)
+    iKs = Array{KT}(N)
     rowi = 0
     for i = 1:N
         row = rowi + (1:s)

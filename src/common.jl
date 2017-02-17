@@ -144,9 +144,9 @@ function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
     q = Int(q)
     s = q - 1
 
-    mJij = Array(Float64, s, s)
-    amJi = Array(Float64, s)
-    amJj = Array(Float64, s)
+    mJij = Array{Float64}(s, s)
+    amJi = Array{Float64}(s)
+    amJj = Array{Float64}(s)
     fs = Float64(s)
     fs2 = Float64(s^2)
 
