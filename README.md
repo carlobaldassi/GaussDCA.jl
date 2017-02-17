@@ -15,7 +15,7 @@ This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
 
 The code is written in [Julia](www.julialang.org) and requires julia version
-0.3 or later; it provides a function which reads a multiple sequence alignment
+0.4 or later; it provides a function which reads a multiple sequence alignment
 (in FASTA format) and returns a ranking of all pairs of residue positions in
 the aligned amino-acid sequences.
 
@@ -114,7 +114,7 @@ The parallelization can be forcefully disabled even in presence of extra
 workers, by setting the environment variable `PARALLEL_GDCA` to `false`
 before loading the `GaussDCA` module.
 
-In julia 0.2, when using workers, and using either OpenBLAS - which is the
+In julia 0.4, when using workers, and using either OpenBLAS - which is the
 default - or MKL as the BLAS backend, the default behaviour is to disable
 threading in BLAS libraries. In this case, i.e. when many workers are found and
 parallelization is not manually disabled, the `gDCA` function overrides the
