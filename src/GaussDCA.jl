@@ -70,7 +70,7 @@ function check_arguments(filename, pseudocount, theta, max_gap_fraction, score, 
         aerror("invalid score value: $score (must be either :DI or :frob)")
     min_separation >= 1 ||
         aerror("invalid min_separation value: $min_separation (must be >= 1)")
-    isreadable(filename) ||
+    isfile(filename) ||
         aerror("cannot open file $filename")
 
     return true

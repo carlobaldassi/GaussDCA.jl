@@ -4,7 +4,17 @@ include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
-use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", CPU_CORES)) : 1)
+if VERSION > v"0.5-"
+    const blas_set_num_threads = BLAS.set_num_threads
+end
+
+if VERSION < v"0.5-"
+    compat_remotecall_fetch(f, id::Integer, args...) = remotecall_fetch(id, f, args...)
+else
+    const compat_remotecall_fetch = remotecall_fetch
+end
+
+use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", Sys.CPU_CORES)) : 1)
 
 typealias TriuInd Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
@@ -54,7 +64,8 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     @sync begin
         for p = 1:nw
             @async begin
-                ret[p] = remotecall_fetch(wrk[p], func, inds[p], args...)
+                # TODO: remove when julia 0.4 support is dropped
+                ret[p] = compat_remotecall_fetch(func, wrk[p], inds[p], args...)
             end
         end
     end
