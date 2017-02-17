@@ -386,9 +386,9 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
                 #V = Is + 4 * (MM * MM')
                 V = MM * MM'
                 #X = Is + sqrtm(Symmetric(V))
-                eigV = eig(V)[1]
-                eigX = sqrt(1 .+ 4 * eigV)
                 #DI[l] = z + 0.5 * log(det(X))
+                eigV = eigvals(V)
+                eigX = sqrt(1 .+ 4 * eigV)
                 DI[l] = z + 0.5 * sum(log(1 .+ eigX))
             else
                 DI[l] = 0

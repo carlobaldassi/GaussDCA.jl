@@ -274,9 +274,9 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
                 #V = Is + 4 * (MM * MM')
                 V = MM * MM'
                 #X = Is + sqrtm(Symmetric(V))
-                eigV = eig(V)[1]
-                eigX = sqrt(1 .+ 4 * eigV)
                 #DI[i,j] = z + 0.5 * log(det(X))
+                eigV = eigvals(V)
+                eigX = sqrt(1 .+ 4 * eigV)
                 DI[i,j] = z + 0.5 * sum(log(1 .+ eigX))
                 DI[j,i] = DI[i,j]
             end
