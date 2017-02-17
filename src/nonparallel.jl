@@ -34,7 +34,7 @@ function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
                     zi, czi = next(cZi, czi)
                     zj, czj = next(cZj, czj)
 
-                    ny = (~zi) $ zj
+                    ny = (~zi) ⊻ zj
                     z += nz_aux(ny)
                 end
                 t = @collapse(z)
@@ -44,12 +44,12 @@ function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
             for r = 1:rmax
                 zi, czi = next(cZi, czi)
                 zj, czj = next(cZj, czj)
-                ny = (~zi) $ zj
+                ny = (~zi) ⊻ zj
                 z += nz_aux(ny)
             end
             zi, czi = next(cZi, czi)
             zj, czj = next(cZj, czj)
-            ny = (~zi) $ zj
+            ny = (~zi) ⊻ zj
             z += nz_aux2(ny, cr)
             t = @collapse(z)
             nids += t
@@ -117,7 +117,7 @@ function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int
                     zi, czi = next(cZi, czi)
                     zj, czj = next(cZj, czj)
 
-                    y = zi $ zj
+                    y = zi ⊻ zj
                     z += nnz_aux(y)
                 end
                 t = @collapse(z)
@@ -130,7 +130,7 @@ function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int
                     zi, czi = next(cZi, czi)
                     zj, czj = next(cZj, czj)
 
-                    y = zi $ zj
+                    y = zi ⊻ zj
                     z += nnz_aux(y)
                 end
                 t = @collapse(z)
@@ -212,7 +212,7 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
                     zi, czi = next(cZi, czi)
                     zj, czj = next(cZj, czj)
 
-                    y = zi $ zj
+                    y = zi ⊻ zj
                     z += nnz_aux(y)
                 end
                 t = @collapse(z)
@@ -223,7 +223,7 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
                 zi, czi = next(cZi, czi)
                 zj, czj = next(cZj, czj)
 
-                y = zi $ zj
+                y = zi ⊻ zj
                 z += nnz_aux(y)
             end
             t = @collapse(z)
