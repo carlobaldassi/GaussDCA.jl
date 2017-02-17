@@ -360,7 +360,9 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     return D
 end
 
-function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Symmetric{Float64,Matrix{Float64}}}, mJ::Matrix{Float64}, z::Float64)
+typealias KT Symmetric{Float64,Matrix{Float64}}
+
+function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ::Matrix{Float64}, z::Float64)
 
     DI = Array(Float64, inds[3])
     i0, j0 = inds[1]
@@ -395,12 +397,6 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{Symmetr
         end
     end
     return DI
-end
-
-if VERSION ≥ v"0.4-"
-    typealias KT Symmetric{Float64,Matrix{Float64}}
-else
-    typealias KT Matrix{Float64}
 end
 
 function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)

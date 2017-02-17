@@ -152,7 +152,7 @@ end
 
 function compute_weights(ZZ::Vector{Vector{Int8}}, theta::Float64, N::Int, M::Int)
 
-    Meff = 0.
+    Meff = 0.0
 
     W = ones(M)
 
