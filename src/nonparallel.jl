@@ -235,11 +235,7 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     return D
 end
 
-if VERSION ≥ v"0.4-"
-    typealias KT Symmetric{Float64,Matrix{Float64}}
-else
-    typealias KT Matrix{Float64}
-end
+typealias KT Symmetric{Float64,Matrix{Float64}}
 
 function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
