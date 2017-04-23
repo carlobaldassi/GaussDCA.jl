@@ -1,12 +1,14 @@
 Gaussian Direct Coupling Analysis for protein contacts predicion
 ================================================================
 
+[![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url]
+
 Overview
 --------
 
 This is the code which accompanies the paper ["Fast and accurate multivariate
 Gaussian modeling of protein families: Predicting residue contacts and
-protein-interaction partners"](http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721)
+protein-interaction partners"][paper]
 by Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini,
 Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014)
 PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
@@ -14,7 +16,7 @@ PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
 This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
 
-The code is written in [Julia](www.julialang.org) and requires julia version
+The code is written in [Julia][julia] and requires julia version
 0.4 or later; it provides a function which reads a multiple sequence alignment
 (in FASTA format) and returns a ranking of all pairs of residue positions in
 the aligned amino-acid sequences.
@@ -22,6 +24,18 @@ the aligned amino-acid sequences.
 If you use the code in your research, please cite the abovementioned paper
 and the following DOI:
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.10814.png)](http://dx.doi.org/10.5281/zenodo.10814)
+
+[paper]: http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721
+[julia]: https://www.julialang.org
+
+[travis-img]: https://travis-ci.org/carlobaldassi/GaussDCA.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/carlobaldassi/GaussDCA.jl
+
+[appveyor-img]: https://ci.appveyor.com/api/projects/status/stbu5m2i72fh6dwh/branch/master?svg=true
+[appveyor-url]: https://ci.appveyor.com/project/carlobaldassi/gaussdca-jl/branch/master
+
+[codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl
 
 Installation
 ------------
@@ -114,7 +128,7 @@ The parallelization can be forcefully disabled even in presence of extra
 workers, by setting the environment variable `PARALLEL_GDCA` to `false`
 before loading the `GaussDCA` module.
 
-In julia 0.4, when using workers, and using either OpenBLAS - which is the
+When using workers, and using either OpenBLAS - which is the
 default - or MKL as the BLAS backend, the default behaviour is to disable
 threading in BLAS libraries. In this case, i.e. when many workers are found and
 parallelization is not manually disabled, the `gDCA` function overrides the

@@ -1,0 +1,20 @@
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
+language: julia
+os:
+  - linux
+  - osx
+julia:
+  - 0.4
+  - 0.5
+  - 0.6
+  - nightly
+notifications:
+  email: false
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("GaussDCA")'
+  - GDCA_TESTING=true julia --check-bounds=yes --inline=no -e 'Pkg.test("GaussDCA"; coverage=true)'
+  - GDCA_TESTING=true julia -p 2 --check-bounds=yes --inline=no -e 'Pkg.test("GaussDCA"; coverage=true)'
+after_success:
+  - julia -e 'Pkg.add("Coverage", v"0.3")'
+  - julia -e 'cd(Pkg.dir("GaussDCA")); include("coverage.jl")'
