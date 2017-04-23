@@ -6,7 +6,7 @@ include("read_fasta_alignment.jl")
 
 using .ReadFastaAlignment
 
-if nprocs() > 2 && parse(get(ENV, "PARALLEL_GDCA", "true"))
+if nprocs() > 2 && get(ENV, "PARALLEL_GDCA", "true") == "true"
     include("parallel.jl")
 else
     include("nonparallel.jl")
