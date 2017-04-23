@@ -51,11 +51,16 @@ function compress_Z(Z::Matrix{Int8})
     return cZ
 end
 
+macro hash(x)
+    tst = get(ENV, "GDCA_TESTING", "false") == "true"
+    return Expr(:call, tst ? :sum : :hash, esc(x))
+end
+
 function remove_duplicate_seqs(Z::Matrix{Int8})
     N, M = size(Z)
     hZ = Array(UInt, M)
     @inbounds for i = 1:M
-        hZ[i] = hash(Z[:,i])
+        hZ[i] = @hash(Z[:,i])
     end
     print("removing duplicate sequences... ")
 
