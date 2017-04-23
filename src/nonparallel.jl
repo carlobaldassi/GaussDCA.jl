@@ -63,6 +63,7 @@ function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     return theta
 end
 
+# slow fallback
 function compute_theta(ZZ::Vector{Vector{Int8}}, N::Int, M::Int)
     meanfracid = 0.0
     for i = 1:M-1
@@ -150,6 +151,7 @@ function compute_weights(cZ::Vector{Vector{UInt64}}, theta::Real, N::Int, M::Int
     return W, Meff
 end
 
+# slow fallback
 function compute_weights(ZZ::Vector{Vector{Int8}}, theta::Float64, N::Int, M::Int)
 
     Meff = 0.0

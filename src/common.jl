@@ -119,22 +119,25 @@ compute_weights(Z::Matrix{Int8}, theta) = compute_weights(Z, maximum(Z), theta)
 
 compute_weights(Z::Matrix{Int8}, q, theta) = error("theta must be either :auto or a single real value")
 
+function Z_to_cZ(Z, q)
+    M = size(Z, 2)
+    fast = q ≤ 32 && get(ENV, "GDCA_FORCE_FALLBACK", "false") ≠ "true"
+    fast || println("GaussDCA: using slower fallbacks")
+    return fast ? compress_Z(Z) : [Z[:,i]::Vector{Int8} for i = 1:M]
+end
+
 function compute_weights(Z::Matrix{Int8}, q, theta::Symbol)
     theta != :auto && return invoke(compute_weights, (Matrix{Int8}, Any, Any), Z, theta)
 
     N, M = size(Z)
-    cZ = q <= 32 ?
-        compress_Z(Z) :
-        [Z[:,i]::Vector{Int8} for i = 1:M]
+    cZ = Z_to_cZ(Z, q)
     theta = compute_theta(cZ, N, M)
     return compute_weights(cZ, theta, N, M)
 end
 
 function compute_weights(Z::Matrix{Int8}, q, theta::Real)
     N, M = size(Z)
-    cZ = q <= 32 ?
-        compress_Z(Z) :
-        [Z[:,i]::Vector{Int8} for i = 1:M]
+    cZ = Z_to_cZ(Z, q)
     return compute_weights(cZ, theta, N, M)
 end
 

@@ -93,7 +93,19 @@ function test2()
     return true
 end
 
-test1()
-test2()
+function test3()
+    ENV["GDCA_FORCE_FALLBACK"] = "true"
+    DIR = gDCA(fastafile_s, pseudocount = 0.2, score = :DI, remove_dups = true);
+    results_DIR = @tostring printrank(DIR)
+    expected_results_DIR = readstring(DIRfile_s)
+    compare_results(results_DIR, expected_results_DIR)
+    delete!(ENV, "GDCA_FORCE_FALLBACK")
+    return true
+end
+
+for t in [test1, test2, test3]
+    info("Running $t")
+    t()
+end
 
 end
