@@ -276,8 +276,8 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
                 #X = Is + sqrtm(Symmetric(V))
                 #DI[i,j] = z + 0.5 * log(det(X))
                 eigV = eigvals(V)
-                eigX = map(sqrt, 1 .+ 4 * eigV)
-                DI[i,j] = z + 0.5 * sum(map(log, 1 .+ eigX))
+                eigX = [sqrt(x) for x in 1 .+ 4 * eigV]
+                DI[i,j] = z + 0.5 * sum([log(x) for x in 1 .+ eigX])
                 DI[j,i] = DI[i,j]
             end
         end

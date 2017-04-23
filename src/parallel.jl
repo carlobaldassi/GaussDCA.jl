@@ -24,7 +24,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     nw = nworkers()
 
     if tot_inds >= nw
-        inds_dist = diff(map(x->round(Int,x), linspace(1, tot_inds+1, nw+1)))
+        inds_dist = diff([round(Int,x) for x in linspace(1, tot_inds+1, nw+1)])
     else
         inds_dist = [ones(Int, tot_inds); zeros(Int, nw-tot_inds)]
     end
@@ -388,8 +388,8 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
                 #X = Is + sqrtm(Symmetric(V))
                 #DI[l] = z + 0.5 * log(det(X))
                 eigV = eigvals(V)
-                eigX = map(sqrt, 1 .+ 4 * eigV)
-                DI[l] = z + 0.5 * sum(map(log, 1 .+ eigX))
+                eigX = [sqrt(x) for x in 1 .+ 4 * eigV]
+                DI[l] = z + 0.5 * sum([log(x) for x in 1 .+ eigX])
             else
                 DI[l] = 0
             end
