@@ -89,7 +89,6 @@ function test2()
     DIR = gDCA(fastafile_l, pseudocount = 0.2, score = :DI, remove_dups = true);
     results_DIR = @tostring printrank(DIR)
     expected_results_DIR = readstring(DIRfile_l)
-    open("TEST.txt", "w") do f; print(f, results_DIR); end
     compare_results(results_DIR, expected_results_DIR)
     return true
 end

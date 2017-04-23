@@ -14,7 +14,7 @@ script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone(pwd()); Pkg.build("GaussDCA")'
   - GDCA_TESTING=true julia --check-bounds=yes --inline=no -e 'Pkg.test("GaussDCA"; coverage=true)'
-  - GDCA_TESTING=true julia -p 2 --check-bounds=yes --inline=no --check-bounds=yes -e 'cd(Pkg.dir("GaussDCA", "test")); include("runtests.jl")'
+  - GDCA_TESTING=true julia -p 2 --check-bounds=yes --inline=no --check-bounds=yes --code-coverage=user -e 'cd(Pkg.dir("GaussDCA", "test")); include("runtests.jl")'
 after_success:
   - julia -e 'Pkg.add("Coverage", v"0.3")'
   - julia -e 'cd(Pkg.dir("GaussDCA")); include("coverage.jl")'
