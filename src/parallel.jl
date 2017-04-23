@@ -16,7 +16,7 @@ end
 
 use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", Sys.CPU_CORES)) : 1)
 
-typealias TriuInd Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
+const TriuInd = Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
 function ptriu(sz::Int, RT::Type, func::Function, args...)
 
@@ -24,7 +24,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     nw = nworkers()
 
     if tot_inds >= nw
-        inds_dist = diff(round(Int, linspace(1, tot_inds+1, nw+1)))
+        inds_dist = diff(map(x->round(Int,x), linspace(1, tot_inds+1, nw+1)))
     else
         inds_dist = [ones(Int, tot_inds); zeros(Int, nw-tot_inds)]
     end
@@ -360,7 +360,7 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     return D
 end
 
-typealias KT Symmetric{Float64,Matrix{Float64}}
+const KT = Symmetric{Float64,Matrix{Float64}}
 
 function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ::Matrix{Float64}, z::Float64)
 
@@ -388,8 +388,8 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
                 #X = Is + sqrtm(Symmetric(V))
                 #DI[l] = z + 0.5 * log(det(X))
                 eigV = eigvals(V)
-                eigX = sqrt(1 .+ 4 * eigV)
-                DI[l] = z + 0.5 * sum(log(1 .+ eigX))
+                eigX = map(sqrt, 1 .+ 4 * eigV)
+                DI[l] = z + 0.5 * sum(map(log, 1 .+ eigX))
             else
                 DI[l] = 0
             end

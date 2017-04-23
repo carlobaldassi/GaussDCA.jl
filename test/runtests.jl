@@ -33,6 +33,15 @@ macro tostring(ex)
     end
 end
 
+macro atest(a, b)
+    if VERSION < v"0.6-"
+        return :(@test_approx_eq $(esc(a)) $(esc(b)))
+    else
+        return :(@test $(esc(a)) ≈ $(esc(b)))
+    end
+end
+
+
 function todict(r)
     d = Dict{NTuple{2,Int},Float64}()
     for l in split(r, ['\r', '\n'], keep = false)
@@ -52,7 +61,7 @@ function compare_results(r1, r2)
     @test allk == sort!(collect(keys(d2)))
 
     for k in allk
-        @test_approx_eq d1[k] d2[k]
+        @atest d1[k] d2[k]
     end
     return true
 end

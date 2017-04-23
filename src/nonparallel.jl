@@ -235,7 +235,7 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     return D
 end
 
-typealias KT Symmetric{Float64,Matrix{Float64}}
+const KT = Symmetric{Float64,Matrix{Float64}}
 
 function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
@@ -276,8 +276,8 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
                 #X = Is + sqrtm(Symmetric(V))
                 #DI[i,j] = z + 0.5 * log(det(X))
                 eigV = eigvals(V)
-                eigX = sqrt(1 .+ 4 * eigV)
-                DI[i,j] = z + 0.5 * sum(log(1 .+ eigX))
+                eigX = map(sqrt, 1 .+ 4 * eigV)
+                DI[i,j] = z + 0.5 * sum(map(log, 1 .+ eigX))
                 DI[j,i] = DI[i,j]
             end
         end
