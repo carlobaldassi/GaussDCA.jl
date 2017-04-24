@@ -23,7 +23,7 @@ the aligned amino-acid sequences.
 
 If you use the code in your research, please cite the abovementioned paper
 and the following DOI:
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.10814.png)](http://dx.doi.org/10.5281/zenodo.10814)
+[![DOI][zenodo-img]][zenodo-url]
 
 [paper]: http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721
 [julia]: https://www.julialang.org
@@ -36,6 +36,9 @@ and the following DOI:
 
 [codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl
+
+[zenodo-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.10814.svg
+[zenodo-url]: https://doi.org/10.5281/zenodo.10814
 
 Installation
 ------------
