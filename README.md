@@ -1,7 +1,7 @@
 Gaussian Direct Coupling Analysis for protein contacts predicion
 ================================================================
 
-[![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url]
+[![][travis-img]][travis-url] [![][codecov-img]][codecov-url]
 
 Overview
 --------
