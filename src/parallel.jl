@@ -86,10 +86,10 @@ function ptriu_compose{T}(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd}
         i1, j1 = inds[p][2]
         srcp = src[p]
         l = 1
-        for i = i0 : i1
+        for i = i0:i1
             jj0 = i==i0 ? j0 : i+1
             jj1 = i==i1 ? j1 : sz
-            for j = jj0 : jj1
+            for j = jj0:jj1
                 x = srcp[l]
                 dest[i,j] = x
                 dest[j,i] = x
@@ -115,12 +115,12 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         cZi = unsafe(cZ[i])
         nids::UInt64 = 0
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -174,11 +174,11 @@ function compute_theta_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, N::Int, M:
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             Zj = ZZ[j]
             nids = 0
             for k = 1:N
@@ -205,7 +205,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
         cZi = unsafe(cZ[i])
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -277,11 +277,11 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     W = zeros(M)
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             Zj = ZZ[j]
             dist = 0
             k = 1
@@ -315,7 +315,7 @@ function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
         cZi = unsafe(cZ[i])
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -368,15 +368,15 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
     i0, j0 = inds[1]
     i1, j1 = inds[2]
     l = 1
-    for i = i0 : i1
-        row = (i-1)*s + 1 : i*s
+    for i = i0:i1
+        row = ((i-1)*s+1):i*s
 
         invsqrtKi = iKs[i]
 
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : N
-        for j = jj0 : jj1
-            col = (j-1)*s + 1 : j*s
+        for j = jj0:jj1
+            col = ((j-1)*s+1):j*s
 
             invsqrtKj = iKs[j]
 

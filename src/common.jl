@@ -44,7 +44,7 @@ function compress_Z(Z::Matrix{Int8})
         for k = 1:N
             k0 = div(k-1, packfactor)+1
             k1 = (k-1) % packfactor
-            cZi[k0] |= (UInt64(ZZi[k]) << 5*k1)
+            cZi[k0] |= (UInt64(ZZi[k]) << (5*k1))
         end
     end
 
@@ -186,7 +186,7 @@ function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
             end
             fn = 0.0
             for b = 1:s, a = 1:s
-                fn += (mJij[a,b] - amJi[b] - amJj[a] + amJ) ^ 2
+                fn += (mJij[a,b] - amJi[b] - amJj[a] + amJ)^2
             end
 
             FN[i,j] = sqrt(fn)
