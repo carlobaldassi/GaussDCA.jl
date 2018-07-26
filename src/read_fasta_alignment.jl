@@ -50,7 +50,7 @@ function read_fasta_alignment(filename::AbstractString, max_gap_fraction::Real)
     length(seqs) > 0 || error("Out of $(f.num_parsed) sequences, none passed the filter (max_gap_fraction=$max_gap_fraction)")
 
     # pass 2
-    Z = Array{Int8}(fseqlen, length(seqs))
+    Z = Array{Int8}(undef, fseqlen, length(seqs))
 
     seqid = 1
     for (name, seq) in f

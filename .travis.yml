@@ -4,17 +4,16 @@ os:
   - linux
   - osx
 julia:
-  - 0.4
-  - 0.5
   - 0.6
+  - 0.7
   - nightly
 notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("GaussDCA")'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("GaussDCA"); Pkg.add("Compat")'
   - GDCA_TESTING=true julia --check-bounds=yes --inline=no -e 'Pkg.test("GaussDCA"; coverage=true)'
-  - GDCA_TESTING=true julia --check-bounds=yes --inline=no --code-coverage=user -e 'addprocs(2; exeflags=["--check-bounds=yes", "--inline=no", "--code-coverage=user"]); cd(Pkg.dir("GaussDCA", "test")); include("runtests.jl")'
+  - GDCA_TESTING=true julia --check-bounds=yes --inline=no --code-coverage=user -e 'using Compat.Distributed; addprocs(2; exeflags=["--check-bounds=yes", "--inline=no", "--code-coverage=user"]); cd(Pkg.dir("GaussDCA", "test")); include("runtests.jl")'
 after_success:
   - julia -e 'Pkg.add("Coverage", v"0.3")'
   - julia -e 'cd(Pkg.dir("GaussDCA")); include("coverage.jl")'

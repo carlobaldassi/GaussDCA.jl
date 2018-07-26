@@ -11,35 +11,17 @@ function annotate_new!(T, ex::Expr)
     return ex
 end
 
-# horrible macro to keep compatibility with both julia 0.5 and 0.6,
-# while avoiding some even more horrible syntax
-macro inner(T, ex)
-    VERSION < v"0.6-" && return esc(ex)
-    @assert Base.Meta.isexpr(ex, [:(=), :function])
-    @assert length(ex.args) == 2
-    @assert isa(ex.args[1], Expr) && ex.args[1].head == :call
-    @assert isa(ex.args[1].args[1], Symbol)
-    fn = ex.args[1].args[1]
-    fargs = ex.args[1].args[2:end]
-    body = ex.args[2]
-    annotate_new!(T, body)
-
-    return esc(Expr(ex.head, Expr(:where, Expr(:call, Expr(:curly, fn, T), fargs...), T), body))
-end
-
 # this is unsafe in 2 ways:
 #  1) no boundary checking
 #  2) calling functions must keep a reference to the
 #     original Array to avoid garbage collection
 #     (e.g. A=UnsafeArray(A) is dangerous)
 # it must be used with care!
-immutable UnsafeArray{T} <: AbstractVector{T}
+struct UnsafeArray{T} <: AbstractVector{T}
     p::Ptr{T}
     l::Int
-    @inner T UnsafeArray(A::Array{T}) = new(pointer(A), length(A))
+    UnsafeArray(A::Array{T}) where {T} = new{T}(pointer(A), length(A))
 end
-
-UnsafeArray{T}(A::Array{T}) = UnsafeArray{T}(A)
 
 Base.getindex(uA::UnsafeArray, i::Int) = unsafe_load(uA.p, i)
 Base.length(uA::UnsafeArray) = uA.l
