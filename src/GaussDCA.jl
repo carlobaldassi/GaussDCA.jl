@@ -1,5 +1,8 @@
 module GaussDCA
 
+using Compat, Compat.Printf, Compat.LinearAlgebra, Compat.Distributed
+using Compat: sum
+
 export gDCA, printrank
 
 include("read_fasta_alignment.jl")
@@ -13,13 +16,15 @@ else
 end
 using .AuxFunctions
 
+const compat_cholesky = VERSION < v"0.7.0-DEV.3449" ? cholfact : cholesky
+
 function gDCA(filename::AbstractString;
-                      pseudocount::Real = 0.8,
-                      theta = :auto,
-                      max_gap_fraction::Real = 0.9,
-                      score::Symbol = :frob,
-                      min_separation::Integer = 5,
-                      remove_dups::Bool = false)
+              pseudocount::Real = 0.8,
+              theta = :auto,
+              max_gap_fraction::Real = 0.9,
+              score::Symbol = :frob,
+              min_separation::Integer = 5,
+              remove_dups::Bool = false)
 
 
     check_arguments(filename, pseudocount, theta, max_gap_fraction, score, min_separation)
@@ -40,7 +45,7 @@ function gDCA(filename::AbstractString;
 
     C = compute_C(Pi, Pij)
 
-    mJ = inv(cholfact(C))
+    mJ = inv(compat_cholesky(C))
 
     if score == :DI
         S = compute_DI(mJ, C, N, q)
@@ -156,7 +161,7 @@ function add_pseudocount(Pi_true::Vector{Float64}, Pij_true::Matrix{Float64}, pc
 
     i0 = 0
     for i = 1:N
-	xr = i0 + (1:s)
+        xr::UnitRange{Int} = VERSION < v"0.7.0-DEV.1759" ? i0 + (1:s) : i0 .+ (1:s)
 	Pij[xr, xr] = (1 - pc) * Pij_true[xr, xr]
         for alpha = 1:s
             x = i0 + alpha
@@ -172,8 +177,8 @@ compute_C(Pi::Vector{Float64}, Pij::Matrix{Float64}) = Pij - Pi * Pi'
 
 function correct_APC(S::Matrix)
     N = size(S, 1)
-    Si = sum(S, 1)
-    Sj = sum(S, 2)
+    Si = sum(S, dims=1)
+    Sj = sum(S, dims=2)
     Sa = sum(S) * (1 - 1/N)
 
     S -= (Sj * Si) / Sa
@@ -183,7 +188,7 @@ end
 function compute_ranking(S::Matrix{Float64}, min_separation::Int = 5)
 
     N = size(S, 1)
-    R = Array{Tuple{Int,Int,Float64}}(div((N-min_separation)*(N-min_separation+1), 2))
+    R = Array{Tuple{Int,Int,Float64}}(undef, div((N-min_separation)*(N-min_separation+1), 2))
     counter = 0
     for i = 1:N-min_separation, j = i+min_separation:N
         counter += 1

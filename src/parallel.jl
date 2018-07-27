@@ -1,20 +1,14 @@
 module AuxFunctions
 
 include("common.jl")
+using Compat.Distributed
+using Compat: range
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
-if VERSION > v"0.5-"
-    const blas_set_num_threads = BLAS.set_num_threads
-end
+const cpus = VERSION < v"0.7.0-beta.282" ? Sys.CPU_CORES : Sys.CPU_THREADS
 
-if VERSION < v"0.5-"
-    compat_remotecall_fetch(f, id::Integer, args...) = remotecall_fetch(id, f, args...)
-else
-    const compat_remotecall_fetch = remotecall_fetch
-end
-
-use_threading(x::Bool) = blas_set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", Sys.CPU_CORES)) : 1)
+use_threading(x::Bool) = BLAS.set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", cpus)) : 1)
 
 const TriuInd = Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
@@ -24,12 +18,12 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     nw = nworkers()
 
     if tot_inds >= nw
-        inds_dist = diff([round(Int,x) for x in linspace(1, tot_inds+1, nw+1)])
+        inds_dist = diff([round(Int,x) for x in range(1, stop=tot_inds+1, length=nw+1)])
     else
         inds_dist = [ones(Int, tot_inds); zeros(Int, nw-tot_inds)]
     end
 
-    inds = Array{TriuInd}(nw)
+    inds = Array{TriuInd}(undef, nw)
     i0, j0 = 1, 2
     for p = 1:nw
         l = inds_dist[p]
@@ -56,7 +50,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
         end
     end
 
-    ret = Array{RT}(nw)
+    ret = Array{RT}(undef, nw)
     wrk = workers()
 
     use_threading(false)
@@ -64,8 +58,7 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     @sync begin
         for p = 1:nw
             @async begin
-                # TODO: remove when julia 0.4 support is dropped
-                ret[p] = compat_remotecall_fetch(func, wrk[p], inds[p], args...)
+                ret[p] = remotecall_fetch(func, wrk[p], inds[p], args...)
             end
         end
     end
@@ -75,9 +68,9 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     return ret, inds
 end
 
-function ptriu_compose{T}(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd})
+function ptriu_compose(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd}) where {T}
 
-    dest = Array{T}(sz, sz)
+    dest = Array{T}(undef, sz, sz)
 
     @assert length(src) == length(inds)
 
@@ -86,10 +79,10 @@ function ptriu_compose{T}(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd}
         i1, j1 = inds[p][2]
         srcp = src[p]
         l = 1
-        for i = i0 : i1
+        for i = i0:i1
             jj0 = i==i0 ? j0 : i+1
             jj1 = i==i1 ? j1 : sz
-            for j = jj0 : jj1
+            for j = jj0:jj1
                 x = srcp[l]
                 dest[i,j] = x
                 dest[j,i] = x
@@ -106,21 +99,21 @@ end
 
 function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
-    const cl = clength(N)
-    const cr = 5 * (packfactor - crest(N)) + packrest
+    cl = clength(N)
+    cr = 5 * (packfactor - crest(N)) + packrest
 
-    const kmax = div(cl - 1, 31)
-    const rmax = (cl - 1) % 31
+    kmax = div(cl - 1, 31)
+    rmax = (cl - 1) % 31
 
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         cZi = unsafe(cZ[i])
         nids::UInt64 = 0
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -160,7 +153,7 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
     return meanfracid
 end
 
-function compute_theta{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, N::Int, M::Int)
+function compute_theta(cZ::Vector{Vector{T}}, N::Int, M::Int) where {T<:Union{Int8,UInt64}}
 
     chunk_means, _ = ptriu(M, Float64, compute_theta_chunk, cZ, N, M)
     meanfracid = sum(chunk_means) / (0.5 * M * (M-1))
@@ -174,11 +167,11 @@ function compute_theta_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, N::Int, M:
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             Zj = ZZ[j]
             nids = 0
             for k = 1:N
@@ -193,9 +186,9 @@ end
 
 function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh::Real, N::Int, M::Int)
 
-    const cl = clength(N)
-    const kmax = div(cl - 1, 31)
-    const rmax = (cl - 1) % 31 + 1
+    cl = clength(N)
+    kmax = div(cl - 1, 31)
+    rmax = (cl - 1) % 31 + 1
 
     W = zeros(M)
     i0, j0 = inds[1]
@@ -205,7 +198,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
         cZi = unsafe(cZ[i])
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -246,7 +239,7 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
     return W
 end
 
-function compute_weights{T<:Union{Int8,UInt64}}(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int)
+function compute_weights(cZ::Vector{Vector{T}}, theta::Real, N::Int, M::Int) where {T<:Union{Int8,UInt64}}
 
     theta = Float64(theta)
 
@@ -277,11 +270,11 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     W = zeros(M)
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0 : i1
+    for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             Zj = ZZ[j]
             dist = 0
             k = 1
@@ -301,9 +294,9 @@ end
 
 function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
-    const cl = clength(N)
-    const kmax = div(cl - 1, 31)
-    const rmax = (cl - 1) % 31 + 1
+    cl = clength(N)
+    kmax = div(cl - 1, 31)
+    rmax = (cl - 1) % 31 + 1
 
     D = zeros(Float16, inds[3])
 
@@ -315,7 +308,7 @@ function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
         cZi = unsafe(cZ[i])
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
-        for j = jj0 : jj1
+        for j = jj0:jj1
             cZj = unsafe(cZ[j])
 
             czi = start(cZi)
@@ -362,21 +355,23 @@ end
 
 const KT = Symmetric{Float64,Matrix{Float64}}
 
+const compat_sqrtm = @static VERSION < v"0.7.0-DEV.3449" ? sqrtm : sqrt
+
 function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ::Matrix{Float64}, z::Float64)
 
-    DI = Array{Float64}(inds[3])
+    DI = Array{Float64}(undef, inds[3])
     i0, j0 = inds[1]
     i1, j1 = inds[2]
     l = 1
-    for i = i0 : i1
-        row = (i-1)*s + 1 : i*s
+    for i = i0:i1
+        row = ((i-1)*s+1):i*s
 
         invsqrtKi = iKs[i]
 
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : N
-        for j = jj0 : jj1
-            col = (j-1)*s + 1 : j*s
+        for j = jj0:jj1
+            col = ((j-1)*s+1):j*s
 
             invsqrtKj = iKs[j]
 
@@ -385,7 +380,7 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
                 MM = invsqrtKi * mJij * invsqrtKj
                 #V = Is + 4 * (MM * MM')
                 V = MM * MM'
-                #X = Is + sqrtm(Symmetric(V))
+                #X = Is + compoat_sqrtm(Symmetric(V))
                 #DI[l] = z + 0.5 * log(det(X))
                 eigV = eigvals(V)
                 eigX = [sqrt(x) for x in 1 .+ 4 * eigV]
@@ -403,13 +398,13 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
 
     s = q - 1
 
-    iKs = Array{KT}(N)
+    iKs = Array{KT}(undef, N)
     rowi = 0
     for i = 1:N
-        row = rowi + (1:s)
+        row::UnitRange{Int} = VERSION < v"0.7.0-DEV.1759" ? rowi + (1:s) : rowi .+ (1:s)
         rowi += s
 
-        iKs[i] = sqrtm(Symmetric(C[row,row]))
+        iKs[i] = compat_sqrtm(Symmetric(C[row,row]))
     end
 
     z = 0.5 * s * log(0.5)
