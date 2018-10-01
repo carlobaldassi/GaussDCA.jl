@@ -3,6 +3,14 @@ using .Unsafe
 using Compat
 using Compat.LinearAlgebra
 
+# horrible way to keep backward compatibility
+# this only works because we only use `start` and `next` with
+# unsafe arrays - it is thus a very brittle solution
+@static if VERSION ≥ v"0.7.0-DEV.5126"
+    start(v) = 1
+    next(v, i) = Base.iterate(v, i)
+end
+
 const PACKBITS = 64
 const _u = 0x0084210842108421
 const _alt = 0x007c1f07c1f07c1f

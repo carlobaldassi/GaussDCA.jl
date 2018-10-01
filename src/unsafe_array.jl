@@ -2,15 +2,6 @@ module Unsafe
 
 export unsafe
 
-annotate_new!(T, ex) = ex
-function annotate_new!(T, ex::Expr)
-    if ex.head == :call && ex.args[1] == :new
-        ex.args[1] = Expr(:curly, :new, T)
-    end
-    map!(x->annotate_new!(T, x), ex.args, ex.args)
-    return ex
-end
-
 # this is unsafe in 2 ways:
 #  1) no boundary checking
 #  2) calling functions must keep a reference to the
@@ -25,10 +16,18 @@ end
 
 Base.getindex(uA::UnsafeArray, i::Int) = unsafe_load(uA.p, i)
 Base.length(uA::UnsafeArray) = uA.l
+Base.size(uA::UnsafeArray) = (uA.l,)
 
-Base.start(uA::UnsafeArray) = 1
-Base.next(uA::UnsafeArray, ind::Int) = (uA[ind], ind+1)
-Base.done(uA::UnsafeArray, ind::Int) = ind > length(uA)
+@static if VERSION < v"0.7.0-DEV.5126"
+    Base.start(uA::UnsafeArray) = 1
+    Base.next(uA::UnsafeArray, ind::Int) = (uA[ind], ind+1)
+    Base.done(uA::UnsafeArray, ind::Int) = ind > length(uA)
+else
+    function Base.iterate(uA::UnsafeArray, ind=1)
+        length(uA) < ind && return nothing
+        return uA[ind], ind+1
+    end
+end
 
 unsafe(x) = x
 unsafe(A::Array) = UnsafeArray(A)
