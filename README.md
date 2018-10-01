@@ -1,7 +1,7 @@
 Gaussian Direct Coupling Analysis for protein contacts predicion
 ================================================================
 
-[![][travis-img]][travis-url] [![][codecov-img]][codecov-url]
+[![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url]
 
 Overview
 --------
@@ -13,11 +13,14 @@ by Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini,
 Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014)
 PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
 
+See also [this Wikipedia article][wikiDCA] for a general overview of the Direct
+Coupling Analysis technique.
+
 This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
 
 The code is written in [Julia][julia] and requires julia version
-0.4 or later; it provides a function which reads a multiple sequence alignment
+0.6 or later; it provides a function which reads a multiple sequence alignment
 (in FASTA format) and returns a ranking of all pairs of residue positions in
 the aligned amino-acid sequences.
 
@@ -27,6 +30,7 @@ and the following DOI:
 
 [paper]: http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721
 [julia]: https://www.julialang.org
+[wikiDCA]: https://en.wikipedia.org/wiki/Direct_coupling_analysis
 
 [travis-img]: https://travis-ci.org/carlobaldassi/GaussDCA.jl.svg?branch=master
 [travis-url]: https://travis-ci.org/carlobaldassi/GaussDCA.jl
@@ -43,19 +47,33 @@ and the following DOI:
 Installation
 ------------
 
-The recommended way to install this software is by giving this command in the
-julia command line:
+Install the package by giving these commands:
 
-  ```
-  julia> Pkg.clone("https://github.com/carlobaldassi/GaussDCA.jl")
-  ```
+```
+julia> using Pkg # only in Julia 0.7 or later
 
-in this way, all dependencies will be satisfied automatically, and the code
-will be upgraded every time the `Pkg.update()` command is used.
+julia> Pkg.clone("https://github.com/carlobaldassi/GaussDCA.jl")
+```
 
-Alternatively, you can manually copy the whole directory structure to your
-julia package directory (use `Pkg.dir()` to locate it), and then run
-`Pkg.update()` to download the dependencies.
+All dependencies will be downloaded and installed automatically.
+
+In Julia 0.6, the command `Pkg.upadte()` will fetch the latest changes from
+this repository.
+
+In Julia 0.7 and later, however, if you want to update you need to do so
+explicitly from the package directory using git.  One way to do that is as
+such:
+
+```
+julia> using Pkg
+
+julia> cd(joinpath(Pkg.devdir(), "GaussDCA"))
+
+shell> git pull origin master
+```
+
+Note that the last line is given from the shell prompt, which you can access
+by pressing the <kbd>;</kbd> key.
 
 Usage
 -----
@@ -97,9 +115,11 @@ The `gDCA` function takes some additional, optional keyword arguments:
                      is `5`.
 
 The code will be parallelized if more than one julia worker (as obtained by the
-`nworkers()` function) is available (by either launching julia with the `-p`
-option from the command line, or by using the `addprocs` function). See the
-"Additional thechnical notes" section at the end of this document.
+`nworkers()` function) is available. Multiple workers can be created either by
+launching julia with the `-p` option from the command line, or by using the `addprocs`
+function (note that since julia 0.7 you will need to execute `using Distributed` before
+you can call `addprocs`). See also the "Additional thechnical notes" section at the
+end of this document.
 
 Examples
 --------
