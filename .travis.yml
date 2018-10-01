@@ -6,14 +6,17 @@ os:
 julia:
   - 0.6
   - 0.7
+  - 1.0
   - nightly
+matrix:
+    allow_failures:
+        - julia: nightly
 notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("GaussDCA"); Pkg.add("Compat")'
-  - GDCA_TESTING=true julia --check-bounds=yes -e 'Pkg.test("GaussDCA"; coverage=true)'
-  - GDCA_TESTING=true julia --check-bounds=yes --code-coverage=user -e 'using Compat.Distributed; addprocs(2; exeflags=["--check-bounds=yes", "--code-coverage=user"]); cd(Pkg.dir("GaussDCA", "test")); include("runtests.jl")'
+  - julia -e 'if VERSION >= v"0.7.0-DEV.5183"; using Pkg; end; Pkg.clone(pwd()); Pkg.build("GaussDCA")'
+  - GDCA_TESTING=true julia --check-bounds=yes -e 'if VERSION >= v"0.7.0-DEV.5183"; using Pkg; end; Pkg.test("GaussDCA"; coverage=true)'
+  - GDCA_TESTING=true julia --check-bounds=yes --code-coverage=user -e 'if VERSION >= v"0.7.0-DEV.5183"; using Pkg; end; Pkg.add("Compat"); using Compat.Distributed; addprocs(2; exeflags=["--check-bounds=yes", "--code-coverage=user"]); cd("test"); include("runtests.jl")'
 after_success:
-  - julia -e 'Pkg.add("Coverage", v"0.3")'
-  - julia -e 'cd(Pkg.dir("GaussDCA")); include("coverage.jl")'
+  - julia -e 'if VERSION >= v"0.7.0-DEV.5183"; using Pkg; end; using GaussDCA; Pkg.add("Coverage"); using Coverage; get(ENV,"TRAVIS_OS_NAME","")=="linux" && get(ENV,"TRAVIS_JULIA_VERSION","")=="0.7" && Codecov.submit(Codecov.process_folder())'
