@@ -1,7 +1,7 @@
 include("unsafe_array.jl")
 using .Unsafe
 using Compat
-using Compat.LinearAlgebra
+using LinearAlgebra
 
 # horrible way to keep backward compatibility
 # this only works because we only use `start` and `next` with

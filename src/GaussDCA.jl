@@ -1,6 +1,6 @@
 module GaussDCA
 
-using Compat, Compat.Printf, Compat.LinearAlgebra, Compat.Distributed
+using Compat, Printf, LinearAlgebra, Distributed
 using Compat: sum
 
 export gDCA, printrank
