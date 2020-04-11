@@ -56,7 +56,7 @@ julia> Pkg.clone("https://github.com/carlobaldassi/GaussDCA.jl")
 ```
 
 Alternatively, using julia version 1.0 or later you can use the new
-package manager. Type `]` and:
+package manager. From julia REPL, type <kbd>]</kbd> and:
 
 ```
 (@v1.?) pkg> add https://github.com/pagnani/GaussDCA.jl.git
