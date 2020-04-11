@@ -80,7 +80,7 @@ shell> git pull origin master
 Note that the last line is given from the shell prompt, which you can access
 by pressing the <kbd>;</kbd> key.
 
-Compatibility with Julia version 0.6 (and earlier) is no longer guaranteed.
+Compatibility with Julia version 0.7 (and earlier) is no longer guaranteed.
 
 Usage
 -----
