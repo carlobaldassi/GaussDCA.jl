@@ -2,7 +2,7 @@ module GaussDCATests
 
 using GaussDCA
 using Compat
-using Compat.Test
+using Test
 import Compat: @info
 
 datadir = joinpath(dirname(@__FILE__), "data")
