@@ -59,7 +59,7 @@ Alternatively, using julia version 1.0 or later you can use the new
 package manager. From julia REPL, type <kbd>]</kbd> and:
 
 ```
-(@v1.?) pkg> add https://github.com/pagnani/GaussDCA.jl.git
+(@v1.?) pkg> add https://github.com/carlobaldassi/GaussDCA.jl.git
 ```
 Note that the method above will be the one to use for julia 1.4 and later.
 
