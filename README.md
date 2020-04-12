@@ -50,17 +50,22 @@ Installation
 Install the package by giving these commands:
 
 ```
-julia> using Pkg # only in Julia 0.7 or later
+julia> using Pkg # only in Julia 0.7-1.3
 
 julia> Pkg.clone("https://github.com/carlobaldassi/GaussDCA.jl")
 ```
 
+Alternatively, using julia version 1.0 or later you can use the new
+package manager. From julia REPL, type <kbd>]</kbd> and:
+
+```
+(@v1.?) pkg> add https://github.com/carlobaldassi/GaussDCA.jl.git
+```
+Note that the method above will be the one to use for julia 1.4 and later.
+
 All dependencies will be downloaded and installed automatically.
 
-In Julia 0.6, the command `Pkg.upadte()` will fetch the latest changes from
-this repository.
-
-In Julia 0.7 and later, however, if you want to update you need to do so
+In Julia versions 0.7-1.3, however, if you want to update you need to do so
 explicitly from the package directory using git.  One way to do that is as
 such:
 
@@ -74,6 +79,8 @@ shell> git pull origin master
 
 Note that the last line is given from the shell prompt, which you can access
 by pressing the <kbd>;</kbd> key.
+
+Compatibility with Julia version 0.7 (and earlier) is no longer guaranteed.
 
 Usage
 -----
