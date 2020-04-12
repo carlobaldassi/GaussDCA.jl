@@ -15,10 +15,10 @@ notifications:
 script:
 - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 - julia -e  'using Pkg; end; Pkg.add(pwd()); Pkg.build("GaussDCA")'
-- GDCA_TESTING=true julia --check-bounds=yes -e 'using Pkg; end; Pkg.test("GaussDCA"; coverage=true)'
-- GDCA_TESTING=true julia --check-bounds=yes --code-coverage=user -e 'using Pkg; end; Pkg.add("Compat"); using Compat; using Distributed; addprocs(2;exeflags=["--check-bounds=yes", "--code-coverage=user"]); cd("test"); include("runtests.jl")'
+- GDCA_TESTING=true julia --check-bounds=yes -e 'using Pkg; Pkg.test("GaussDCA"; coverage=true)'
+- GDCA_TESTING=true julia --check-bounds=yes --code-coverage=user -e 'using Pkg; Pkg.add("Compat"); using Compat; using Distributed; addprocs(2;exeflags=["--check-bounds=yes", "--code-coverage=user"]); cd("test"); include("runtests.jl")'
 after_success:
-- julia -e 'using Pkg; end; using GaussDCA; Pkg.add("Coverage"); using Coverage; get(ENV,"TRAVIS_OS_NAME","")=="linux" && Codecov.submit(Codecov.process_folder())'
+- julia -e 'using Pkg; using GaussDCA; Pkg.add("Coverage"); using Coverage; get(ENV,"TRAVIS_OS_NAME","")=="linux" && Codecov.submit(Codecov.process_folder())'
 
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
