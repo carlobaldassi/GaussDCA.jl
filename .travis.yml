@@ -14,7 +14,7 @@ notifications:
   email: false
 script:
 - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-- julia -e  'using Pkg; Pkg.add(pwd()); Pkg.build("GaussDCA")'
+- julia -e  'using Pkg; Pkg.add(PackageSpec(path=pwd())); Pkg.build("GaussDCA")'
 - GDCA_TESTING=true julia --check-bounds=yes -e 'using Pkg; Pkg.test("GaussDCA"; coverage=true)'
 - GDCA_TESTING=true julia --check-bounds=yes --code-coverage=user -e 'using Pkg; Pkg.add("Compat"); using Compat; using Distributed; addprocs(2;exeflags=["--check-bounds=yes", "--code-coverage=user"]); cd("test"); include("runtests.jl")'
 after_success:
