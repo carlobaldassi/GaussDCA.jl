@@ -1,15 +1,19 @@
 name = "GaussDCA"
 uuid = "bc09176e-aa47-5a77-a802-92a0219fe3db"
+version = "2.0.0"
 
 [deps]
-Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
-Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 FastaIO = "a0c94c4b-ebed-5953-b5fc-82fe598ac79f"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-Compat = "≥ 0.70.0"
 FastaIO = "≥ 0.1.2"
 julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

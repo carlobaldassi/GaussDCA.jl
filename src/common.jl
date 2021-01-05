@@ -1,26 +1,16 @@
 include("unsafe_array.jl")
 using .Unsafe
-using Compat
-using LinearAlgebra
-
-# horrible way to keep backward compatibility
-# this only works because we only use `start` and `next` with
-# unsafe arrays - it is thus a very brittle solution
-@static if VERSION ≥ v"0.7.0-DEV.5126"
-    start(v) = 1
-    next(v, i) = Base.iterate(v, i)
-end
 
 const PACKBITS = 64
 const _u = 0x0084210842108421
 const _alt = 0x007c1f07c1f07c1f
 
-const packfactor = div(PACKBITS, 5)
+const packfactor = PACKBITS ÷ 5
 const packrest = PACKBITS % 5
 
 const _msk = ~(UInt64(0));
 
-clength(l::Int) = div(l-1, packfactor) + 1
+clength(l::Int) = (l-1) ÷ packfactor + 1
 crest(l::Int)   = (l-1) % packfactor + 1
 
 nnz_aux(x::UInt64) = ((x | (x >>> 1) | (x >>> 2) | (x >>> 3) | (x >>> 4)) & _u)
@@ -29,14 +19,23 @@ nz_aux(nx::UInt64) = (nx & (nx >>> 1) & (nx >>> 2) & (nx >>> 3) & (nx >>> 4) & _
 
 nz_aux2(nx::UInt64, s) = nz_aux(nx) & (_msk >>> s)
 
-macro collapse(z)
-    quote
-        t = ($(esc(z)) & _alt) + (($(esc(z)) >> 5) & _alt)
-        t += t >> 10
-        t += t >> 20
-        t += t >> 40
-        t &= 0x3ff
-    end
+# macro collapse(z)
+#     quote
+#         t = ($(esc(z)) & _alt) + (($(esc(z)) >> 5) & _alt)
+#         t += t >> 10
+#         t += t >> 20
+#         t += t >> 40
+#         t &= 0x3ff
+#     end
+# end
+
+@inline function collapse(z)
+    t = (z & _alt) + ((z >> 5) & _alt)
+    t += t >> 10
+    t += t >> 20
+    t += t >> 40
+    t &= 0x3ff
+    return t
 end
 
 function compress_Z(Z::Matrix{Int8})
@@ -51,9 +50,9 @@ function compress_Z(Z::Matrix{Int8})
         cZi = cZ[i]
         ZZi = ZZ[i]
         for k = 1:N
-            k0 = div(k-1, packfactor)+1
+            k0 = (k-1) ÷ packfactor + 1
             k1 = (k-1) % packfactor
-            cZi[k0] |= (UInt64(ZZi[k]) << (5*k1))
+            cZi[k0] |= (UInt64(ZZi[k]) << (5 * k1))
         end
     end
 
@@ -81,41 +80,28 @@ function remove_duplicate_seqs(Z::Matrix{Int8})
     uniqueseqs = collect(values(ref_seq))
 
     # Check for collisions
+    old_collided = trues(M)
     collided = falses(M)
-    @inbounds for i = 1:M
-        k = ref_seq_ind[i]
-        k == i && continue
-        for j = 1:N
-            Z[j,i] != Z[j,k] && (collided[i] = true; break)
+    while true
+        fill!(collided, false)
+        @inbounds for i = 1:M
+            k = ref_seq_ind[i]
+            (!old_collided[i] || k == i) && continue
+            collided[i] = @views Z[:,i] ≠ Z[:,k]
         end
-    end
+        any(collided) || break
 
-    if any(collided)
-        nowcollided = BitArray(undef, M)
-        while any(collided)
-            # Collect index of first row for each collided hash
-            empty!(ref_seq)
-            @inbounds for i = 1:M
-                collided[i] || continue
-                ref_seq_ind[i] = get!(ref_seq, hZ[i], i)
-            end
-            for v in values(ref_seq)
-                push!(uniqueseqs, v)
-            end
-
-            # Check for collisions
-            fill!(nowcollided, false)
-            @inbounds for i = 1:M
-                k = ref_seq_ind[i]
-                (!collided[i] || k == i) && continue
-                for j = 1:N
-                    Z[j,i] != Z[j,k] && (nowcollided[i] = true; break)
-                end
-            end
-            collided, nowcollided = nowcollided, collided
+        # Collect index of first row for each collided hash
+        empty!(ref_seq)
+        @inbounds for i = 1:M
+            collided[i] || continue
+            ref_seq_ind[i] = get!(ref_seq, hZ[i], i)
         end
+        for v in values(ref_seq)
+            push!(uniqueseqs, v)
+        end
+        old_collided, collided = collided, old_collided
     end
-
     sort!(uniqueseqs)
 
     newM = length(uniqueseqs)
@@ -124,9 +110,9 @@ function remove_duplicate_seqs(Z::Matrix{Int8})
     return newZ, uniqueseqs
 end
 
-compute_weights(Z::Matrix{Int8}, theta) = compute_weights(Z, maximum(Z), theta)
+compute_weights(Z::Matrix{Int8}, θ) = compute_weights(Z, maximum(Z), θ)
 
-compute_weights(Z::Matrix{Int8}, q, theta) = error("theta must be either :auto or a single real value")
+compute_weights(Z::Matrix{Int8}, q, θ) = throw(ArgumentError("θ must be either :auto or a single real value"))
 
 function Z_to_cZ(Z, q)
     M = size(Z, 2)
@@ -135,29 +121,22 @@ function Z_to_cZ(Z, q)
     return fast ? compress_Z(Z) : [Z[:,i]::Vector{Int8} for i = 1:M]
 end
 
-function compute_weights(Z::Matrix{Int8}, q, theta::Symbol)
-    theta != :auto && return invoke(compute_weights, (Matrix{Int8}, Any, Any), Z, theta)
+function compute_weights(Z::Matrix{Int8}, q, θ::Symbol)
+    θ ≠ :auto && throw(ArgumentError("θ must be either :auto or a single real value"))
 
     N, M = size(Z)
     cZ = Z_to_cZ(Z, q)
-    theta = compute_theta(cZ, N, M)
-    return compute_weights(cZ, theta, N, M)
+    θ = compute_theta(cZ, N, M)
+    return compute_weights(cZ, θ, N, M)
 end
 
-function compute_weights(Z::Matrix{Int8}, q, theta::Real)
+function compute_weights(Z::Matrix{Int8}, q, θ::Real)
     N, M = size(Z)
     cZ = Z_to_cZ(Z, q)
-    return compute_weights(cZ, theta, N, M)
+    return compute_weights(cZ, θ, N, M)
 end
-
-#function matsqrt(K::Matrix{Float64})
-    #vL, U = eig(K)
-    #L = diagm(sqrt(vL))
-    #U * L * U'
-#end
 
 function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
-
     q = Int(q)
     s = q - 1
 
@@ -170,22 +149,17 @@ function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
     FN = zeros(N, N)
 
     for i = 1:N-1
-        #row = (i-1)*s + 1 : i*s
-        row0 = (i-1)*s
-
+        row0 = (i-1) * s
         for j = i+1:N
-            #col = (j-1)*s + 1 : j*s
-            col0 = (j-1)*s
+            col0 = (j-1) * s
 
-            # devectorize for speed and memory efficicency
-            #mJij = mJ[row,col]
-            #mK = mJij .- mean(mJij, 1) .- mean(mJij, 2) .+ mean(mJij)
+            ## devectorize for speed and memory efficicency
+            # mJij = mJ[row,col]
+            # mK = mJij .- mean(mJij, 1) .- mean(mJij, 2) .+ mean(mJij)
 
             amJ = 0.0
-            for a = 1:s
-                amJi[a] = 0.0
-                amJj[a] = 0.0
-            end
+            fill!(amJi, 0.0)
+            fill!(amJj, 0.0)
             for b = 1:s, a = 1:s
                 x = mJ[row0 + a, col0 + b]
                 mJij[a,b] = x
@@ -198,8 +172,7 @@ function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
                 fn += (mJij[a,b] - amJi[b] - amJj[a] + amJ)^2
             end
 
-            FN[i,j] = sqrt(fn)
-            #FN[i,j] = normfro(mK)
+            FN[i,j] = √fn
             FN[j,i] = FN[i,j]
         end
     end
