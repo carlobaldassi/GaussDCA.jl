@@ -1,12 +1,16 @@
 module AuxFunctions
 
 using LinearAlgebra
+using Base.Threads
 
 include("common.jl")
 
 export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
 use_threading(x) = nothing
+
+const chunk_size = 64
+
 
 function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
     cl = clength(N)
@@ -17,44 +21,53 @@ function compute_theta(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     meanfracid = 0.0
 
-    # count seqs below θ distance
-    for i = 1:M-1
-        cZi = unsafe(cZ[i])
-        nids::UInt64 = 0
-        for j = i+1:M
-            cZj = unsafe(cZ[j])
-            czi, czj = 1, 1
-            z::UInt64 = 0
-            for k = 1:kmax
-                z = 0
-                for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+    perthread_fracids = zeros(nthreads())
 
+    @inbounds for i = 1:M-1
+        cZi = cZ[i]
+        # nids::UInt64 = 0
+        Threads.@threads for j1 = i+1:chunk_size:M
+            for j = j1:min(j1+chunk_size-1, M)
+                cZj = cZ[j]
+                czi, czj = 1, 1
+                z::UInt64 = 0
+                for k = 1:kmax
+                    z = 0
+                    for r = 1:31
+                        zi, zj = cZi[czi], cZj[czj]
+                        czi += 1
+                        czj += 1
+
+                        ny = (~zi) ⊻ zj
+                        z += nz_aux(ny)
+                    end
+                    t = collapse(z)
+                    # nids += t
+                    perthread_fracids[Threads.threadid()] += t / N
+                end
+                z = 0
+                for r = 1:rmax
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
                     ny = (~zi) ⊻ zj
                     z += nz_aux(ny)
                 end
-                t = collapse(z)
-                nids += t
-            end
-            z = 0
-            for r = 1:rmax
-                zi, czi = iterate(cZi, czi)
-                zj, czj = iterate(cZj, czj)
+                zi, zj = cZi[czi], cZj[czj]
+                czi += 1
+                czj += 1
                 ny = (~zi) ⊻ zj
-                z += nz_aux(ny)
+                z += nz_aux2(ny, cr)
+                t = collapse(z)
+                # nids += t
+                perthread_fracids[Threads.threadid()] += t / N
             end
-            zi, czi = iterate(cZi, czi)
-            zj, czj = iterate(cZj, czj)
-            ny = (~zi) ⊻ zj
-            z += nz_aux2(ny, cr)
-            t = collapse(z)
-            nids += t
         end
-        fracid = nids / N
-        meanfracid += fracid
+        # fracid = nids / N
+        # meanfracid += fracid
     end
-    meanfracid /= 0.5 * M * (M-1)
+    meanfracid = sum(perthread_fracids) / (M * (M - 1) ÷ 2)
+    # meanfracid /= 0.5 * M * (M-1)
     θ = min(0.5, 0.38 * 0.32 / meanfracid)
 
     return θ
@@ -99,18 +112,19 @@ function compute_weights(cZ::Vector{Vector{UInt64}}, θ::Real, N::Int, M::Int)
         return W, Float64(M)
     end
 
-    for i = 1:M-1
-        cZi = unsafe(cZ[i])
+    @inbounds for i = 1:M-1
+        cZi = cZ[i]
         for j = i+1:M
-            cZj = unsafe(cZ[j])
+            cZj = cZ[j]
             czi, czj = 1, 1
             dist::UInt64 = 0
             z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -122,8 +136,9 @@ function compute_weights(cZ::Vector{Vector{UInt64}}, θ::Real, N::Int, M::Int)
             if dist < thresh
                 z = 0
                 for r = 1:rmax
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -191,18 +206,19 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
 
     D = zeros(Float16, M, M)
 
-    for i = 1:M-1
-        cZi = unsafe(cZ[i])
+    @inbounds for i = 1:M-1
+        cZi = cZ[i]
         for j = i+1:M
-            cZj = unsafe(cZ[j])
+            cZj = cZ[j]
             czi, czj = 1, 1
             dist::UInt64 = 0
             z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -212,8 +228,9 @@ function compute_dists(cZ::Vector{Vector{UInt64}}, N::Int, M::Int)
             end
             z = 0
             for r = 1:rmax
-                zi, czi = iterate(cZi, czi)
-                zj, czj = iterate(cZj, czj)
+                zi, zj = cZi[czi], cZj[czj]
+                czi += 1
+                czj += 1
 
                 y = zi ⊻ zj
                 z += nnz_aux(y)

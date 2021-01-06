@@ -1,6 +1,3 @@
-include("unsafe_array.jl")
-using .Unsafe
-
 const PACKBITS = 64
 const _u = 0x0084210842108421
 const _alt = 0x007c1f07c1f07c1f

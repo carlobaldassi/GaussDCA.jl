@@ -12,12 +12,12 @@ const TriuInd = Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
 function ptriu(sz::Int, RT::Type, func::Function, args...)
     tot_inds = (sz * (sz-1)) ÷ 2
-    nw = nworkers()
+    # nw = nworkers()
+    nw = nthreads()
     # @show nw
-    # nw = nthreads()
 
     if tot_inds ≥ nw
-        inds_dist = diff([round(Int,x) for x in range(1, stop=tot_inds+1, length=nw+1)])
+        inds_dist = diff([round(Int,x) for x in range(1, tot_inds+1, length=nw+1)])
     else
         inds_dist = [ones(Int, tot_inds); zeros(Int, nw-tot_inds)]
     end
@@ -54,19 +54,17 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
 
     use_threading(false)
 
-    @sync begin
-        for p = 1:nw
-            @async begin
-                # println("wrk[p]=$(wrk[p]) p = $p inds=$(inds[p])")
-                ret[p] = remotecall_fetch(func, wrk[p], inds[p], args...)
-            end
-        end
-    end
-
-    # Threads.@threads for p = 1:nw
-    #     println("Thread: $(Threads.threadid()) p = $p inds=$(inds[p])")
-    #     ret[p] = func(inds[p], args...)
+    # @sync for p = 1:nw
+    #     @async begin
+    #         # println("wrk[p]=$(wrk[p]) p = $p inds=$(inds[p])")
+    #         ret[p] = remotecall_fetch(func, wrk[p], inds[p], args...)
+    #     end
     # end
+
+    Threads.@threads for p = 1:nw
+        # println("Thread: $(Threads.threadid()) p = $p inds=$(inds[p])")
+        ret[p] = func(inds[p], args...)
+    end
 
     use_threading(true)
 
@@ -111,20 +109,21 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0:i1
-        cZi = unsafe(cZ[i])
+    @inbounds for i = i0:i1
+        cZi = cZ[i]
         nids::UInt64 = 0
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
         for j = jj0:jj1
-            cZj = unsafe(cZ[j])
+            cZj = cZ[j]
             czi, czj = 1, 1
             z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     ny = (~zi) ⊻ zj
                     z += nz_aux(ny)
@@ -134,13 +133,15 @@ function compute_theta_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
             end
             z = 0
             for r = 1:rmax
-                zi, czi = iterate(cZi, czi)
-                zj, czj = iterate(cZj, czj)
+                zi, zj = cZi[czi], cZj[czj]
+                czi += 1
+                czj += 1
                 ny = (~zi) ⊻ zj
                 z += nz_aux(ny)
             end
-            zi, czi = iterate(cZi, czi)
-            zj, czj = iterate(cZj, czj)
+            zi, zj = cZi[czi], cZj[czj]
+            czi += 1
+            czj += 1
             ny = (~zi) ⊻ zj
             z += nz_aux2(ny, cr)
             t = collapse(z)
@@ -164,7 +165,7 @@ function compute_theta_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, N::Int, M:
     meanfracid = 0.0
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0:i1
+    @inbounds for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
@@ -190,20 +191,21 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
     i0, j0 = inds[1]
     i1, j1 = inds[2]
 
-    for i = i0:i1
-        cZi = unsafe(cZ[i])
+    @inbounds for i = i0:i1
+        cZi = cZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
         for j = jj0:jj1
-            cZj = unsafe(cZ[j])
+            cZj = cZ[j]
             czi, czj = 1, 1
             dist::UInt64 = 0
             z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -215,8 +217,9 @@ function compute_weights_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, thresh
             if dist < thresh
                 z = 0
                 for r = 1:rmax
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -263,7 +266,7 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     W = zeros(M)
     i0, j0 = inds[1]
     i1, j1 = inds[2]
-    for i = i0:i1
+    @inbounds for i = i0:i1
         Zi = ZZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
@@ -272,7 +275,7 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
             dist = 0
             k = 1
             while dist < thresh && k <= N
-                dist += Zi[k] != Zj[k]
+                dist += Zi[k] ≠ Zj[k]
                 k += 1
             end
             if dist < thresh
@@ -296,19 +299,22 @@ function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
 
     l = 1
     for i = i0:i1
-        cZi = unsafe(cZ[i])
+        # cZi = unsafe(cZ[i])
+        cZi = cZ[i]
         jj0 = i==i0 ? j0 : i+1
         jj1 = i==i1 ? j1 : M
         for j = jj0:jj1
-            cZj = unsafe(cZ[j])
+            # cZj = unsafe(cZ[j])
+            cZj = cZ[j]
             czi, czj = 1, 1
             dist::UInt64 = 0
             z::UInt64 = 0
             for k = 1:kmax
                 z = 0
                 for r = 1:31
-                    zi, czi = iterate(cZi, czi)
-                    zj, czj = iterate(cZj, czj)
+                    zi, zj = cZi[czi], cZj[czj]
+                    czi += 1
+                    czj += 1
 
                     y = zi ⊻ zj
                     z += nnz_aux(y)
@@ -318,8 +324,9 @@ function compute_dists_chunk(inds::TriuInd, cZ::Vector{Vector{UInt64}}, N::Int, 
             end
             z = 0
             for r = 1:rmax
-                zi, czi = iterate(cZi, czi)
-                zj, czj = iterate(cZj, czj)
+                zi, zj = cZi[czi], cZj[czj]
+                czi += 1
+                czj += 1
 
                 y = zi ⊻ zj
                 z += nnz_aux(y)
@@ -347,7 +354,7 @@ function compute_DI_chunk(inds::TriuInd, N::Int, s::Integer, iKs::Vector{KT}, mJ
     i0, j0 = inds[1]
     i1, j1 = inds[2]
     l = 1
-    for i = i0:i1
+    @inbounds for i = i0:i1
         row = ((i-1)*s+1):i*s
         invsqrtKi = iKs[i]
         jj0 = i==i0 ? j0 : i+1
@@ -377,7 +384,7 @@ function compute_DI(mJ::Matrix{Float64}, C::Matrix{Float64}, N::Int, q::Integer)
     for i = 1:N
         row = rowi .+ (1:s)
         rowi += s
-        iKs[i] = √(Symmetric(C[row,row]))
+        iKs[i] = (√(Symmetric(@view C[row,row])))::KT
     end
 
     z = 0.5 * s * log(0.5)
