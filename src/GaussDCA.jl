@@ -2,13 +2,10 @@ module GaussDCA
 
 export gDCA, printrank
 
-using LinearAlgebra, Distributed, Printf
+using LinearAlgebra, Printf
 
-include("read_fasta_alignment.jl")
-using .ReadFastaAlignment
-
-include("auxfunctions.jl")
-using .AuxFunctions
+include("DCAUtils.jl")
+using .DCAUtils
 
 function gDCA(
         filename::AbstractString;
@@ -24,13 +21,13 @@ function gDCA(
 
     Z = read_fasta_alignment(filename, max_gap_fraction)
     if remove_dups
-        Z, _ = remove_duplicate_seqs(Z)
+        Z, _ = remove_duplicate_sequences(Z)
     end
     N, M = size(Z)
     q = Int(maximum(Z))
     q > 32 && error("parameter q=$q is too big (max 32 is allowed)")
 
-    Pi_true, Pij_true, Meff, _ = compute_new_frequencies(Z, q, θ)
+    Pi_true, Pij_true, Meff, _ = compute_weighted_frequencies(Z, q, θ)
 
     Pi, Pij = add_pseudocount(Pi_true, Pij_true, Float64(pseudocount), N, q)
 
@@ -77,85 +74,6 @@ end
 printrank(R::Vector{Tuple{Int,Int,Float64}}) = printrank(STDOUT, R)
 
 printrank(outfile::AbstractString, R::Vector{Tuple{Int,Int,Float64}}) = open(f->printrank(f, R), outfile, "w")
-
-function compute_new_frequencies(Z::Matrix{Int8}, q, θ)
-    W, Meff = compute_weights(Z, q, θ)
-    Pi_true, Pij_true = compute_freqs(Z, W, Meff)
-    return Pi_true, Pij_true, Meff, W
-end
-
-function compute_freqs(Z::Matrix{Int8}, W::Vector{Float64}, Meff::Float64)
-    N, M = size(Z)
-    q = maximum(Z)
-    s = q - 1
-
-    Ns = N * s
-
-    Pij = zeros(Ns, Ns)
-    Pi = zeros(Ns)
-
-    ZZ = Vector{Int8}[vec(Z[i,:]) for i = 1:N]
-
-    i0 = 0
-    for i = 1:N
-        Zi = ZZ[i]
-        for k = 1:M
-            a = Zi[k]
-            a == q && continue
-            Pi[i0 + a] += W[k]
-        end
-        i0 += s
-    end
-    Pi /= Meff
-
-    i0 = 0
-    for i = 1:N
-        Zi = ZZ[i]
-        j0 = i0
-        for j = i:N
-            Zj = ZZ[j]
-            for k = 1:M
-                a = Zi[k]
-                b = Zj[k]
-                (a == q || b == q) && continue
-                Pij[i0+a, j0+b] += W[k]
-            end
-            j0 += s
-        end
-        i0 += s
-    end
-    for i = 1:Ns
-        Pij[i,i] /= Meff
-        for j = i+1:Ns
-            Pij[i,j] /= Meff
-            Pij[j,i] = Pij[i,j]
-        end
-    end
-
-    return Pi, Pij
-end
-
-function add_pseudocount(Pi_true::Vector{Float64}, Pij_true::Matrix{Float64}, pc::Float64, N::Int, q::Int)
-    pcq = pc / q
-
-    Pij = (1 - pc) * Pij_true .+ pcq / q
-    Pi = (1 - pc) * Pi_true .+ pcq
-
-    s = q - 1
-
-    i0 = 0
-    for i = 1:N
-        xr = i0 .+ (1:s)
-        Pij[xr, xr] = (1 - pc) * Pij_true[xr, xr]
-        for α = 1:s
-            x = i0 + α
-            Pij[x, x] += pcq
-        end
-        i0 += s
-    end
-
-    return Pi, Pij
-end
 
 compute_C(Pi::Vector{Float64}, Pij::Matrix{Float64}) = Pij - Pi * Pi'
 
