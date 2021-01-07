@@ -7,15 +7,7 @@ using LinearAlgebra, Distributed, Printf
 include("read_fasta_alignment.jl")
 using .ReadFastaAlignment
 
-
-# @show nprocs()
-# if nprocs() > 2 && get(ENV, "PARALLEL_GDCA", "true") == "true"
-#     println("qui")
-    include("parallel.jl")
-# else
-#     println("li")
-    # include("nonparallel.jl")
-# end
+include("auxfunctions.jl")
 using .AuxFunctions
 
 function gDCA(
