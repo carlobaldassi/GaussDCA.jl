@@ -76,7 +76,7 @@ function test2()
 end
 
 function test3()
-    ENV["GDCA_FORCE_FALLBACK"] = "true"
+    ENV["DCAUTILS_FORCE_FALLBACK"] = "true"
     DIR = gDCA(fastafile_s, pseudocount = 0.2, score = :DI, remove_dups = true);
     results_DIR = @tostring printrank(DIR)
     expected_results_DIR = read(DIRfile_s, String)

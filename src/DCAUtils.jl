@@ -20,7 +20,7 @@ include("parallel_triu.jl")
 using .ParallelTriU
 
 macro hash(x)
-    tst = get(ENV, "GDCA_TESTING", "false") == "true"
+    tst = get(ENV, "DCAUTILS_TESTING", "false") == "true"
     return Expr(:call, tst ? :sum : :hash, esc(x))
 end
 

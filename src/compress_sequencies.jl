@@ -56,7 +56,7 @@ end
 
 function Z_to_cZ(Z, q)
     M = size(Z, 2)
-    fast = q ≤ 32 && get(ENV, "GDCA_FORCE_FALLBACK", "false") ≠ "true"
+    fast = q ≤ 32 && get(ENV, "DCAUTILS_FORCE_FALLBACK", "false") ≠ "true"
     fast || println("GaussDCA: using slower fallbacks")
     return fast ? compress_Z(Z) : [Z[:,i]::Vector{Int8} for i = 1:M]
 end
