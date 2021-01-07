@@ -30,8 +30,6 @@ function gDCA(
 
     check_arguments(filename, pseudocount, θ, max_gap_fraction, score, min_separation)
 
-    use_threading(true)
-
     Z = read_fasta_alignment(filename, max_gap_fraction)
     if remove_dups
         Z, _ = remove_duplicate_seqs(Z)
@@ -57,8 +55,6 @@ function gDCA(
     S = correct_APC(S)
 
     R = compute_ranking(S, min_separation)
-
-    use_threading(false)
 
     return R
 end

@@ -1,20 +1,53 @@
 module AuxFunctions
 
-using Distributed, LinearAlgebra, Base.Threads
+using LinearAlgebra
+using Base.Threads
+# using Distributed
 
 include("common.jl")
 
-export use_threading, compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
+export compute_weights, compute_DI, compute_FN, remove_duplicate_seqs
 
-use_threading(x::Bool) = BLAS.set_num_threads(x ? Int(get(ENV, "OMP_NUM_THREADS", Sys.CPU_THREADS)) : 1)
+## function borrowed from stdlib/Distributed test file
+function get_num_blas_threads()::Int
+    blas = LinearAlgebra.BLAS.vendor()
+    # Wrap in a try to catch unsupported blas versions
+    try
+        if blas == :openblas
+            return ccall((:openblas_get_num_threads, Base.libblas_name), Cint, ())
+        elseif blas == :openblas64
+            return ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
+        elseif blas == :mkl
+            return ccall((:MKL_Get_Max_Num_Threads, Base.libblas_name), Cint, ())
+        end
+
+        # OSX BLAS looks at an environment variable
+        if Sys.isapple()
+            return tryparse(Cint, get(ENV, "VECLIB_MAXIMUM_THREADS", "1"))
+        end
+    catch
+    end
+
+    return Int(get(ENV, "OMP_NUM_THREADS", Sys.CPU_THREADS))
+end
+
+# create a single-threaded-BLAS scope with do..end
+function disable_blas_threads(f)
+    old_num_threads = get_num_blas_threads()
+    try
+        LinearAlgebra.BLAS.set_num_threads(1)
+        return f()
+    finally
+        LinearAlgebra.BLAS.set_num_threads(old_num_threads)
+    end
+end
 
 const TriuInd = Tuple{Tuple{Int,Int},Tuple{Int,Int},Int}
 
 function ptriu(sz::Int, RT::Type, func::Function, args...)
     tot_inds = (sz * (sz-1)) ÷ 2
-    # nw = nworkers()
+    # nw = nworkers() # use this for multi-processing
     nw = nthreads()
-    # @show nw
 
     if tot_inds ≥ nw
         inds_dist = diff([round(Int,x) for x in range(1, tot_inds+1, length=nw+1)])
@@ -50,23 +83,18 @@ function ptriu(sz::Int, RT::Type, func::Function, args...)
     end
 
     ret = Array{RT}(undef, nw)
-    wrk = workers()
 
-    use_threading(false)
+    disable_blas_threads() do
+        ## use this for multi-processing
+        # wrk = workers()
+        # @sync for p = 1:nw
+        #     @async ret[p] = remotecall_fetch(func, wrk[p], inds[p], args...)
+        # end
 
-    # @sync for p = 1:nw
-    #     @async begin
-    #         # println("wrk[p]=$(wrk[p]) p = $p inds=$(inds[p])")
-    #         ret[p] = remotecall_fetch(func, wrk[p], inds[p], args...)
-    #     end
-    # end
-
-    Threads.@threads for p = 1:nw
-        # println("Thread: $(Threads.threadid()) p = $p inds=$(inds[p])")
-        ret[p] = func(inds[p], args...)
+        Threads.@threads for p = 1:nw
+            ret[p] = func(inds[p], args...)
+        end
     end
-
-    use_threading(true)
 
     return ret, inds
 end
