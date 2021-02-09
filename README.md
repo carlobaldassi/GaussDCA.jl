@@ -1,7 +1,7 @@
 Gaussian Direct Coupling Analysis for protein contacts predicion
 ================================================================
 
-[![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url]
+![CI][CI-url] [![][codecov-img]][codecov-url] [![CODECOV][codecov-img]][codecov-url]
 
 Overview
 --------
@@ -32,17 +32,13 @@ and the following DOI:
 [julia]: https://www.julialang.org
 [wikiDCA]: https://en.wikipedia.org/wiki/Direct_coupling_analysis
 
-[travis-img]: https://travis-ci.org/carlobaldassi/GaussDCA.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/carlobaldassi/GaussDCA.jl
-
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/stbu5m2i72fh6dwh/branch/master?svg=true
-[appveyor-url]: https://ci.appveyor.com/project/carlobaldassi/gaussdca-jl/branch/master
-
-[codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl
-
 [zenodo-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.10814.svg
 [zenodo-url]: https://doi.org/10.5281/zenodo.10814
+
+[CI-url]: https://github.com/carlobaldassi/GaussDCA.jl/workflows/CI/badge.svg
+
+[codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg                                               
+[codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl       
 
 Installation
 ------------

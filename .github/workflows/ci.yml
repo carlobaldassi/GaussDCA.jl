@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+    tags: '*'
+  pull_request:
+env:
+  JULIA_NUM_THREADS: 4
+  GDCAUTILS_TESTING: true
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.version == 'nightly' }}
+    strategy:
+      matrix:
+        version:
+          - '1.5'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+        arch:
+          - x86
+          - x64
+        exclude:
+          # Remove some configurations from the build matrix to reduce CI time.
+          # See https://github.com/marketplace/actions/setup-julia-environment
+          # MacOS not available on x86
+          - {os: 'macOS-latest', arch: 'x86'}
+          - {os: 'windows-latest', arch: 'x86'}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-uploadcodecov@latest
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
