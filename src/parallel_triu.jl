@@ -1,6 +1,6 @@
 module ParallelTriU
 
-export TriuInd, ptriu, ptriu_compose
+export TriuInd, ptriu, ptriu_compose, ptriu_compose_blocks
 
 using LinearAlgebra
 using Base.Threads
@@ -121,6 +121,33 @@ function ptriu_compose(src::Vector{Vector{T}}, sz::Int, inds::Vector{TriuInd}) w
     end
     for i = 1:sz
         dest[i,i] = 0
+    end
+
+    return dest
+end
+
+function ptriu_compose_blocks(src::Vector{Vector{Matrix{T}}}, sz::Int, bsz::Int, inds::Vector{TriuInd}) where {T}
+    dest = zeros(T, sz * bsz, sz * bsz)
+
+    @assert length(src) == length(inds)
+
+    for p = 1:length(src)
+        i0, j0 = inds[p][1]
+        i1, j1 = inds[p][2]
+        srcp = src[p]
+        l = 1
+        for i = i0:i1
+            jj0 = i==i0 ? j0 : i+1
+            jj1 = i==i1 ? j1 : sz
+            for j = jj0:jj1
+                block = srcp[l]
+                row = (i-1)*bsz .+ (1:bsz)
+                col = (j-1)*bsz .+ (1:bsz)
+                dest[row, col] .= block
+                dest[col, row] .= block'
+                l += 1
+            end
+        end
     end
 
     return dest

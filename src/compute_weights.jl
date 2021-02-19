@@ -78,16 +78,38 @@ function compute_weights_chunk(inds::TriuInd, ZZ::Vector{Vector{Int8}}, thresh::
     return W
 end
 
-function compute_weights(cZ::Vector{Vector{T}}, θ::Real, N::Int, M::Int) where {T<:Union{Int8,UInt64}}
+"""
+    compute_weights(Z::Matrix{Int8}, [q::Integer,] θ; verbose::Bool = true) -> (Vector{Float64}, Float64)
+
+This function computes the reweighting vector. It retuns the vector and its sum `Meff` (the latter
+represents the number of "effective" sequences).
+
+`Z` is an \$N × M\$ multiple sequence aLignment (see [`read_fasta_alignment`](@ref)). \$N\$
+is the length of each sequence and \$M\$ the number of sequences.
+
+`q` is the maximum value in the alphabet, if omitted it's computed from `maximum(Z)`.
+
+`θ` is the distance threshold: for any sequence, the number \$n\$ of sequences (including itself)
+that are at normalized distance smaller than \$⌊θN⌋\$ is counted, and the weight of that sequence
+is then \$1/n\$.
+
+`θ` can be a real value between 0 and 1, or the symbol `:auto`, in which case the
+[`compute_theta`](@ref) function is used.
+
+This function can use multiple threads if available.
+"""
+function compute_weights end
+
+function compute_weights(cZ::Vector{<:Vector{<:Union{Int8,UInt64}}}, θ::Real, N::Int, M::Int; verbose::Bool = true)
     θ = Float64(θ)
 
     Meff = 0.0
 
     thresh = floor(θ * N)
-    println("θ = $θ threshold = $thresh")
+    verbose && println("θ = $θ threshold = $thresh")
 
     if θ == 0
-        println("M = $M N = $N Meff = $M")
+        verbose && println("M = $M N = $N Meff = $M")
         W = ones(M)
         return W, Float64(M)
     end
@@ -99,26 +121,26 @@ function compute_weights(cZ::Vector{Vector{T}}, θ::Real, N::Int, M::Int) where 
         W[i] = 1 / (1 + W[i])
         Meff += W[i]
     end
-    println("M = $M N = $N Meff = $Meff")
+    verbose && println("M = $M N = $N Meff = $Meff")
     return W, Meff
 end
 
-compute_weights(Z::Matrix{Int8}, θ) = compute_weights(Z, maximum(Z), θ)
+compute_weights(Z::Matrix{Int8}, θ; kw...) = compute_weights(Z, maximum(Z), θ; kw...)
 
-compute_weights(Z::Matrix{Int8}, q, θ) = throw(ArgumentError("θ must be either :auto or a single real value"))
+compute_weights(Z::Matrix{Int8}, q, θ; kw...) = throw(ArgumentError("θ must be either :auto or a single real value"))
 
-function compute_weights(Z::Matrix{Int8}, q, θ::Symbol)
+function compute_weights(Z::Matrix{Int8}, q::Integer, θ::Symbol; verbose::Bool = true)
     θ ≠ :auto && throw(ArgumentError("θ must be either :auto or a single real value"))
 
     N, M = size(Z)
     cZ = Z_to_cZ(Z, q)
     θ = compute_theta(cZ, N, M)
-    return compute_weights(cZ, θ, N, M)
+    return compute_weights(cZ, θ, N, M; verbose)
 end
 
-function compute_weights(Z::Matrix{Int8}, q, θ::Real)
+function compute_weights(Z::Matrix{Int8}, q::Integer, θ::Real; verbose::Bool = true)
     N, M = size(Z)
     cZ = Z_to_cZ(Z, q)
-    return compute_weights(cZ, θ, N, M)
+    return compute_weights(cZ, θ, N, M; verbose)
 end
 

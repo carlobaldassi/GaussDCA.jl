@@ -35,15 +35,13 @@ end
 
 function compress_Z(Z::Matrix{Int8})
     N, M = size(Z)
-    ZZ = Vector{Int8}[Z[:,i] for i = 1:M]
 
     cl = clength(N)
-
-    cZ = [zeros(UInt64, cl) for i=1:M]
+    cZ = [zeros(UInt64, cl) for i = 1:M]
 
     @inbounds for i = 1:M
         cZi = cZ[i]
-        ZZi = ZZ[i]
+        ZZi = @view Z[:,i]
         for k = 1:N
             k0 = (k-1) ÷ packfactor + 1
             k1 = (k-1) % packfactor
@@ -56,9 +54,9 @@ end
 
 function Z_to_cZ(Z, q)
     M = size(Z, 2)
-    fast = q ≤ 32 && get(ENV, "DCAUTILS_FORCE_FALLBACK", "false") ≠ "true"
+    fast = q < 32 && get(ENV, "DCAUTILS_FORCE_FALLBACK", "false") ≠ "true"
     fast || println("GaussDCA: using slower fallbacks")
-    return fast ? compress_Z(Z) : [Z[:,i]::Vector{Int8} for i = 1:M]
+    return fast ? compress_Z(Z) : Vector{Int8}[Z[:,i] for i = 1:M]
 end
 
 end # module

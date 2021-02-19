@@ -1,10 +1,25 @@
-function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
-    q = Int(q)
-    s = q - 1
+"""
+    compute_FN(J::Matrix{Float64}, q::Integer = 21) -> Matrix{Float64}
 
-    mJij = Array{Float64}(undef, s, s)
-    amJi = Array{Float64}(undef, s)
-    amJj = Array{Float64}(undef, s)
+Compute the matrix of Frobenius norms.
+
+`J` is the inverse of the covariance matrix \$C_{ij} = P_{ij} - P_i P_j\$.
+
+The integer `q` is used to specify the block size of the matrices (each block has size
+\$(q-1)×(q-1)\$). The result has one entry per block.
+
+This function can use multiple threads if available.
+"""
+function compute_FN(J::Matrix{Float64}, q::Integer = 21)
+    Nq = size(J, 1)
+    size(J, 2) == Nq || throw(ArgumentError("J matrix must be square"))
+    s = q - 1
+    Nq % s == 0 || throw(ArgumentError("incompatible size of J with q"))
+
+    N = Nq ÷ s
+    Jij = Array{Float64}(undef, s, s)
+    aJi = Array{Float64}(undef, s)
+    aJj = Array{Float64}(undef, s)
     fs = Float64(s)
     fs2 = Float64(s^2)
 
@@ -16,22 +31,22 @@ function compute_FN(mJ::Matrix{Float64}, N::Int, q::Integer)
             col0 = (j-1) * s
 
             ## devectorize for speed and memory efficicency
-            # mJij = mJ[row,col]
-            # mK = mJij .- mean(mJij, 1) .- mean(mJij, 2) .+ mean(mJij)
+            # Jij = J[row,col]
+            # mK = Jij .- mean(Jij, 1) .- mean(Jij, 2) .+ mean(Jij)
 
-            amJ = 0.0
-            fill!(amJi, 0.0)
-            fill!(amJj, 0.0)
+            aJ = 0.0
+            fill!(aJi, 0.0)
+            fill!(aJj, 0.0)
             for b = 1:s, a = 1:s
-                x = mJ[row0 + a, col0 + b]
-                mJij[a,b] = x
-                amJi[b] += x / fs
-                amJj[a] += x / fs
-                amJ += x / fs2
+                x = J[row0 + a, col0 + b]
+                Jij[a,b] = x
+                aJi[b] += x / fs
+                aJj[a] += x / fs
+                aJ += x / fs2
             end
             fn = 0.0
             for b = 1:s, a = 1:s
-                fn += (mJij[a,b] - amJi[b] - amJj[a] + amJ)^2
+                fn += (Jij[a,b] - aJi[b] - aJj[a] + aJ)^2
             end
 
             FN[i,j] = √fn

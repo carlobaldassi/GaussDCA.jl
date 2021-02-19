@@ -25,20 +25,20 @@ function gDCA(
     end
     N, M = size(Z)
     q = Int(maximum(Z))
-    q > 32 && error("parameter q=$q is too big (max 32 is allowed)")
+    q ≥ 32 && error("parameter q=$q is too big (max 31 is allowed)")
 
     Pi_true, Pij_true, Meff, _ = compute_weighted_frequencies(Z, q, θ)
 
-    Pi, Pij = add_pseudocount(Pi_true, Pij_true, Float64(pseudocount), N, q)
+    Pi, Pij = add_pseudocount(Pi_true, Pij_true, Float64(pseudocount), q)
 
     C = compute_C(Pi, Pij)
 
     mJ = inv(cholesky(C))
 
     if score == :DI
-        S = compute_DI(mJ, C, N, q)
+        S = compute_DI_gauss(mJ, C, q)
     else
-        S = compute_FN(mJ, N, q)
+        S = compute_FN(mJ, q)
     end
 
     S = correct_APC(S)
