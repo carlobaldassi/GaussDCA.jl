@@ -20,25 +20,24 @@ This code is released under the GPL version 3 (or later) license; see the
 `LICENSE.md` file for details.
 
 The code is written in [Julia][julia] and requires julia version
-1.1 or later (1.5 for multithreading code); it provides a function which reads
+1.5 or later; it provides a function which reads
 a multiple sequence alignment (in FASTA format) and returns a ranking of all
 pairs of residue positions in the aligned amino-acid sequences.
 
-If you use the code in your research, please cite the abovementioned paper
-and the following DOI:
-[![DOI][zenodo-img]][zenodo-url]
+Since version 2, most of the internal functions used to parse and manipulate
+the data have been factored out into the package [DCAUtils.jl][DCAUtils].
+The code in this module is essentially a wrapper around those utilities.
 
 [paper]: http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0092721
 [julia]: https://www.julialang.org
 [wikiDCA]: https://en.wikipedia.org/wiki/Direct_coupling_analysis
 
-[zenodo-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.10814.svg
-[zenodo-url]: https://doi.org/10.5281/zenodo.10814
-
 [CI-url]: https://github.com/carlobaldassi/GaussDCA.jl/workflows/CI/badge.svg
 
-[codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg                                               
-[codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl       
+[codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl
+
+[DCAUtils]: https://github.com/carlobaldassi/DCAUtils.jl
 
 Installation
 ------------
@@ -79,7 +78,7 @@ The `gDCA` function takes some additional, optional keyword arguments:
       which means it will be automatically computed (this takes additional
       time); otherwise, a real value between `0` and `1` can be given.
  * `max_gap_fraction`: maximum fraction of gap symbols in a sequence; sequences
-                       which exceed this threshold are discarded. The default
+                       that exceed this threshold are discarded. The default
                        value is `0.9`.
  * `score`: the scoring function to use. There are two possibilities, `:DI` for
             the Direct Information, and `:frob` for the Frobenius norm. The

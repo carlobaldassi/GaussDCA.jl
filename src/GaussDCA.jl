@@ -3,9 +3,7 @@ module GaussDCA
 export gDCA, printrank
 
 using LinearAlgebra, Printf
-
-include("DCAUtils.jl")
-using .DCAUtils
+using DCAUtils
 
 function gDCA(
         filename::AbstractString;
