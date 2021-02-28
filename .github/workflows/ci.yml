@@ -23,14 +23,13 @@ jobs:
           - macOS-latest
           - windows-latest
         arch:
-          - x86
+          # - x86
           - x64
-        exclude:
-          # Remove some configurations from the build matrix to reduce CI time.
-          # See https://github.com/marketplace/actions/setup-julia-environment
-          # MacOS not available on x86
-          - {os: 'macOS-latest', arch: 'x86'}
-          - {os: 'windows-latest', arch: 'x86'}
+        # exclude:
+            #   # Remove some configurations from the build matrix to reduce CI time.
+            #   # See https://github.com/marketplace/actions/setup-julia-environment
+            #   - {os: 'macOS-latest', arch: 'x86'}
+            #   - {os: 'windows-latest', arch: 'x86'}
     steps:
       - uses: actions/checkout@v1
       - uses: julia-actions/setup-julia@latest
