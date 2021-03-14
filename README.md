@@ -1,7 +1,7 @@
 Gaussian Direct Coupling Analysis for protein contacts predicion
 ================================================================
 
-![CI][CI-url] [![][codecov-img]][codecov-url] [![CODECOV][codecov-img]][codecov-url]
+[![CI][CI-img]][CI-url] [![CODECOV][codecov-img]][codecov-url]
 
 Overview
 --------
@@ -32,7 +32,8 @@ The code in this module is essentially a wrapper around those utilities.
 [julia]: https://www.julialang.org
 [wikiDCA]: https://en.wikipedia.org/wiki/Direct_coupling_analysis
 
-[CI-url]: https://github.com/carlobaldassi/GaussDCA.jl/workflows/CI/badge.svg
+[CI-img]: https://github.com/carlobaldassi/GaussDCA.jl/actions/workflows/ci.yml/badge.svg
+[CI-url]: https://github.com/carlobaldassi/GaussDCA.jl/actions/workflows/ci.yml
 
 [codecov-img]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/carlobaldassi/GaussDCA.jl
