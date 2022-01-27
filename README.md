@@ -47,7 +47,7 @@ To install the package, enter in Pkg mode by pressing the <kbd>]</kbd> key,
 then in the pkg prompt enter
 
 ```
-(@v1.5) pkg> add https://github.com/carlobaldassi/GaussDCA.jl"
+(@v1.5) pkg> add "https://github.com/carlobaldassi/GaussDCA.jl"
 ```
 
 Usage
